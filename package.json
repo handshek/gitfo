@@ -1,0 +1,42 @@
+{
+  "name": "gitfo",
+  "version": "1.0.0",
+  "description": "A blazing-fast CLI tool to analyze git commits and show daily coding activity stats",
+  "main": "dist/index.js",
+  "bin": {
+    "gitfo": "./dist/index.js"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "prepublishOnly": "bun run build"
+  },
+  "keywords": [
+    "git",
+    "stats",
+    "cli",
+    "productivity",
+    "developer-tools"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0"
+  },
+  "dependencies": {
+    "simple-git": "^3.22.0",
+    "chalk": "^5.3.0",
+    "cli-table3": "^0.6.5",
+    "commander": "^11.1.0",
+    "date-fns": "^3.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.5",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.1"
+  }
+}
