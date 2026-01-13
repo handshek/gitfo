@@ -14,7 +14,7 @@ export function getLast7Days(): DateRange {
 }
 
 export function formatDateForGit(date: Date): string {
-  return date.toISOString().split("T")[0];
+  return date.toISOString();
 }
 
 export function parseDateRange(options: CLIOptions): DateRange {
@@ -27,7 +27,7 @@ export function parseDateRange(options: CLIOptions): DateRange {
     const today = getToday();
     return {
       start: startOfDay(today),
-      end: endOfDay(today),
+      end: new Date(), // Current time, not end of day
     };
   }
 
@@ -45,10 +45,9 @@ export function parseDateRange(options: CLIOptions): DateRange {
     };
   }
 
-  // Default: today
   const today = getToday();
   return {
     start: startOfDay(today),
-    end: endOfDay(today),
+    end: new Date(),
   };
 }

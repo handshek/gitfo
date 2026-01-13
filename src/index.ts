@@ -1,6 +1,4 @@
-#!/usr/bin/env node
-
-import { parseCLI } from "./cli.js";
+import { parseCLI, program } from "./cli.js";
 import { parseDateRange, formatDateForGit } from "./utils/date.js";
 import { getGitUserEmail, isGitRepo } from "./utils/git.js";
 import { analyzeRepository } from "./core/analyzer.js";
@@ -8,6 +6,11 @@ import { cwd } from "process";
 
 // Parse CLI - commander will handle --help and --version automatically
 const options = parseCLI();
+
+// If no args provided at all, show help (like git does)
+if (process.argv.length <= 2) {
+  program.help();
+}
 
 // Main execution
 (async () => {

@@ -12,13 +12,13 @@ program
 
 program
   .option(
-    "--scan <paths...>",
+    "-s, --scan <paths...>",
     "Scan multiple repositories in specified directories"
   )
-  .option("--date <date>", "Show stats for specific date (YYYY-MM-DD)")
-  .option("--today", "Show stats for today")
-  .option("--week", "Show stats for last 7 days")
-  .option("--author <email>", "Filter by git author email or name")
+  .option("-d, --date <date>", "Show stats for specific date (YYYY-MM-DD)")
+  .option("-t, --today", "Show stats for today")
+  .option("-w, --week", "Show stats for last 7 days")
+  .option("-a, --author <email>", "Filter by git author email or name")
   .option("--format <type>", "Output format: table, json, or summary", "table")
   .option("--include-merges", "Include merge commits in stats")
   .option("-v, --verbose", "Show detailed commit information");
