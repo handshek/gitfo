@@ -2,6 +2,7 @@ import { parseCLI, program } from "./cli.js";
 import { parseDateRange, formatDateForGit } from "./utils/date.js";
 import { getGitUserEmail, isGitRepo } from "./utils/git.js";
 import { analyzeRepository } from "./core/analyzer.js";
+import { formatTable } from "./output/table.js";
 import { cwd } from "process";
 
 // Parse CLI - commander will handle --help and --version automatically
@@ -17,18 +18,9 @@ if (process.argv.length <= 2) {
   try {
     // Parse date range
     const dateRange = parseDateRange(options);
-    const startDate = formatDateForGit(dateRange.start);
-    const endDate = formatDateForGit(dateRange.end);
-
-    console.log(`Analyzing: ${startDate} to ${endDate}`);
 
     // Get author
-    const author = options.author || (await getGitUserEmail());
-    if (author) {
-      console.log(`Author: ${author}`);
-    } else {
-      console.log("Author: (not specified)");
-    }
+    const author = options.author || (await getGitUserEmail()) || null;
 
     // Check if we're in a git repo
     const currentDir = cwd();
@@ -49,14 +41,9 @@ if (process.argv.length <= 2) {
         options.includeMerges ?? false
       );
 
-      console.log("\nStats:");
-      console.log(`Commits: ${stats.totalCommits}`);
-      console.log(`Files Changed: ${stats.totalFilesChanged}`);
-      console.log(`Lines Added: +${stats.totalLinesAdded}`);
-      console.log(`Lines Deleted: -${stats.totalLinesDeleted}`);
-      console.log(
-        `Net Change: ${stats.netChange >= 0 ? "+" : ""}${stats.netChange}`
-      );
+      // Output formatted results
+      const output = formatTable(stats, dateRange, author);
+      console.log(output);
     } else {
       console.log("Multi-repo scanning not yet implemented");
     }
