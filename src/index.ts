@@ -1,8 +1,9 @@
 import { parseCLI, program } from "./cli.js";
-import { parseDateRange, formatDateForGit } from "./utils/date.js";
+import { parseDateRange } from "./utils/date.js";
 import { getGitUserEmail, isGitRepo } from "./utils/git.js";
 import { analyzeRepository } from "./core/analyzer.js";
 import { formatTable } from "./output/table.js";
+import { createLoader } from "./utils/loader.js";
 import { cwd } from "process";
 
 // Parse CLI - commander will handle --help and --version automatically
@@ -28,22 +29,31 @@ if (process.argv.length <= 2) {
       if (!isGitRepo(currentDir)) {
         console.error("Error: Not in a git repository.");
         console.error(
-          "Run this command in a git repo, or use --scan to scan multiple repos."
+          "Run this command in a git repo, or use --scan to scan multiple repos.",
         );
         process.exit(1);
       }
 
-      // Analyze current repository
-      const stats = await analyzeRepository(
-        currentDir,
-        dateRange,
-        author,
-        options.includeMerges ?? false
-      );
+      // Analyze current repository with loading animation
+      const loader = createLoader("Analyzing commits...", "diff");
+      loader.start();
 
-      // Output formatted results
-      const output = formatTable(stats, dateRange, author);
-      console.log(output);
+      try {
+        const stats = await analyzeRepository(
+          currentDir,
+          dateRange,
+          author,
+          options.includeMerges ?? false,
+        );
+        loader.stop();
+
+        // Output formatted results
+        const output = formatTable(stats, dateRange, author);
+        console.log(output);
+      } catch (err) {
+        loader.stop("✗ Failed to analyze repository");
+        throw err;
+      }
     } else {
       console.log("Multi-repo scanning not yet implemented");
     }
