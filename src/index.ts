@@ -1,6 +1,6 @@
 import { parseCLI, program } from "./cli.js";
 import { parseDateRange } from "./utils/date.js";
-import { getGitUserEmail, isGitRepo } from "./utils/git.js";
+import { getGitUserName, getGitUserEmail, isGitRepo } from "./utils/git.js";
 import { analyzeRepository } from "./core/analyzer.js";
 import { formatTable } from "./output/table.js";
 import { formatSummary } from "./output/summary.js";
@@ -22,7 +22,11 @@ if (process.argv.length <= 2) {
     const dateRange = parseDateRange(options);
 
     // Get author
-    const author = options.author || (await getGitUserEmail()) || null;
+    const author =
+      options.author ||
+      (await getGitUserName()) ||
+      (await getGitUserEmail()) ||
+      null;
 
     // Check if we're in a git repo
     const currentDir = cwd();

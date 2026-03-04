@@ -10,7 +10,7 @@ export async function analyzeRepository(
   path: string,
   dateRange: DateRange,
   author: string | null,
-  includeMerges: boolean
+  includeMerges: boolean,
 ): Promise<RepoStats> {
   const git: SimpleGit = simpleGit(path);
   const repoName = basename(path);
@@ -58,7 +58,7 @@ export async function analyzeRepository(
       const commitInfo: CommitInfo = {
         hash: commit.hash.substring(0, 7),
         message: commit.message || "",
-        author: commit.author_email || commit.author_name || "unknown",
+        author: commit.author_name || commit.author_email || "unknown",
         date: new Date(commit.date),
         filesChanged: diffSummary.files.length,
         linesAdded: diffSummary.insertions,
@@ -77,7 +77,7 @@ export async function analyzeRepository(
         const commitInfo: CommitInfo = {
           hash: commit.hash.substring(0, 7),
           message: commit.message || "",
-          author: commit.author_email || commit.author_name || "unknown",
+          author: commit.author_name || commit.author_email || "unknown",
           date: new Date(commit.date),
           filesChanged: diffSummary.files.length,
           linesAdded: diffSummary.insertions,

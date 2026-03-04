@@ -6,19 +6,19 @@ const program = new Command();
 program
   .name("gitfo")
   .description(
-    "A blazing-fast CLI tool to analyze git commits and show daily coding activity stats"
+    "A blazing-fast CLI tool to analyze git commits and show daily coding activity stats",
   )
   .version("1.0.0");
 
 program
   .option(
     "-s, --scan <paths...>",
-    "Scan multiple repositories in specified directories"
+    "Scan multiple repositories in specified directories",
   )
   .option("-d, --date <date>", "Show stats for specific date (YYYY-MM-DD)")
   .option("-t, --today", "Show stats for today")
   .option("-w, --week", "Show stats for last 7 days")
-  .option("-a, --author <email>", "Filter by git author email or name")
+  .option("-a, --author <name|email>", "Filter by git author name or email")
   .option("--format <type>", "Output format: table, json, or summary", "table")
   .option("--include-merges", "Include merge commits in stats")
   .option("-v, --verbose", "Show detailed commit information");
