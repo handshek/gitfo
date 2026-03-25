@@ -2,9 +2,12 @@ import { parseCLI, program } from "./cli.js";
 import { parseDateRange } from "./utils/date.js";
 import { getGitUserName, getGitUserEmail, isGitRepo } from "./utils/git.js";
 import { analyzeRepository } from "./core/analyzer.js";
-import { formatTable } from "./output/table.js";
-import { formatSummary } from "./output/summary.js";
+import { formatTable, formatMultiRepoTable } from "./output/table.js";
+import { formatSummary, formatMultiRepoSummary } from "./output/summary.js";
 import { createLoader } from "./utils/loader.js";
+import { findGitRepos } from "./core/scanner.js";
+import { runInParallel } from "./utils/parallel.js";
+import { aggregateRepositories } from "./core/aggregator.js";
 import { cwd } from "process";
 
 // Parse CLI - commander will handle --help and --version automatically
@@ -74,7 +77,42 @@ if (process.argv.length <= 2) {
         throw err;
       }
     } else {
-      console.log("Multi-repo scanning not yet implemented");
+      const loader = createLoader("Scanning repositories...", "hash");
+      loader.start();
+
+      try {
+        const repoPaths = findGitRepos(options.scan);
+        const repositories = await runInParallel(repoPaths, async (repoPath) =>
+          analyzeRepository(
+            repoPath,
+            dateRange,
+            author,
+            options.includeMerges ?? false,
+          ),
+        );
+        const aggregated = aggregateRepositories(repositories);
+        loader.stop();
+
+        const format = options.format ?? "table";
+        let output: string;
+
+        switch (format) {
+          case "summary":
+            output = formatMultiRepoSummary(aggregated);
+            break;
+          case "json":
+            console.log("JSON format not yet implemented");
+            process.exit(1);
+          case "table":
+          default:
+            output = formatMultiRepoTable(aggregated, dateRange, author);
+        }
+
+        console.log(output);
+      } catch (err) {
+        loader.stop("✗ Failed to scan repositories");
+        throw err;
+      }
     }
   } catch (error) {
     if (error instanceof Error) {

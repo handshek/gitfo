@@ -34,3 +34,13 @@ export interface RepoStats {
   totalLinesDeleted: number;
   netChange: number;
 }
+
+export interface MultiRepoStats {
+  repositories: RepoStats[];
+  totalRepositories: number;
+  totalCommits: number;
+  totalFilesChanged: number;
+  totalLinesAdded: number;
+  totalLinesDeleted: number;
+  netChange: number;
+}
