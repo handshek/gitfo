@@ -1,9 +1,10 @@
-import { parseCLI, program } from "./cli.js";
+import { parseCLI } from "./cli.js";
 import { parseDateRange } from "./utils/date.js";
 import { getGitUserName, getGitUserEmail, isGitRepo } from "./utils/git.js";
 import { analyzeRepository } from "./core/analyzer.js";
 import { formatTable, formatMultiRepoTable } from "./output/table.js";
 import { formatSummary, formatMultiRepoSummary } from "./output/summary.js";
+import { formatJson, formatMultiRepoJson } from "./output/json.js";
 import { createLoader } from "./utils/loader.js";
 import { findGitRepos } from "./core/scanner.js";
 import { runInParallel } from "./utils/parallel.js";
@@ -12,11 +13,6 @@ import { cwd } from "process";
 
 // Parse CLI - commander will handle --help and --version automatically
 const options = parseCLI();
-
-// If no args provided at all, show help (like git does)
-if (process.argv.length <= 2) {
-  program.help();
-}
 
 // Main execution
 (async () => {
@@ -34,6 +30,8 @@ if (process.argv.length <= 2) {
     // Check if we're in a git repo
     const currentDir = cwd();
     if (!options.scan) {
+      const format = options.format ?? "table";
+
       if (!isGitRepo(currentDir)) {
         console.error("Error: Not in a git repository.");
         console.error(
@@ -44,7 +42,9 @@ if (process.argv.length <= 2) {
 
       // Analyze current repository with loading animation
       const loader = createLoader("Analyzing commits...", "diff");
-      loader.start();
+      if (format !== "json") {
+        loader.start();
+      }
 
       try {
         const stats = await analyzeRepository(
@@ -53,10 +53,11 @@ if (process.argv.length <= 2) {
           author,
           options.includeMerges ?? false,
         );
-        loader.stop();
+        if (format !== "json") {
+          loader.stop();
+        }
 
         // Output formatted results based on format option
-        const format = options.format ?? "table";
         let output: string;
 
         switch (format) {
@@ -64,8 +65,8 @@ if (process.argv.length <= 2) {
             output = formatSummary(stats);
             break;
           case "json":
-            console.log("JSON format not yet implemented");
-            process.exit(1);
+            output = formatJson(stats);
+            break;
           case "table":
           default:
             output = formatTable(stats, dateRange, author);
@@ -73,12 +74,17 @@ if (process.argv.length <= 2) {
 
         console.log(output);
       } catch (err) {
-        loader.stop("✗ Failed to analyze repository");
+        if (format !== "json") {
+          loader.stop("✗ Failed to analyze repository");
+        }
         throw err;
       }
     } else {
+      const format = options.format ?? "table";
       const loader = createLoader("Scanning repositories...", "hash");
-      loader.start();
+      if (format !== "json") {
+        loader.start();
+      }
 
       try {
         const repoPaths = findGitRepos(options.scan);
@@ -91,9 +97,10 @@ if (process.argv.length <= 2) {
           ),
         );
         const aggregated = aggregateRepositories(repositories);
-        loader.stop();
+        if (format !== "json") {
+          loader.stop();
+        }
 
-        const format = options.format ?? "table";
         let output: string;
 
         switch (format) {
@@ -101,8 +108,8 @@ if (process.argv.length <= 2) {
             output = formatMultiRepoSummary(aggregated);
             break;
           case "json":
-            console.log("JSON format not yet implemented");
-            process.exit(1);
+            output = formatMultiRepoJson(aggregated);
+            break;
           case "table":
           default:
             output = formatMultiRepoTable(aggregated, dateRange, author);
@@ -110,7 +117,9 @@ if (process.argv.length <= 2) {
 
         console.log(output);
       } catch (err) {
-        loader.stop("✗ Failed to scan repositories");
+        if (format !== "json") {
+          loader.stop("✗ Failed to scan repositories");
+        }
         throw err;
       }
     }

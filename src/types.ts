@@ -1,7 +1,12 @@
 export interface CLIOptions {
   scan?: string[];
   date?: string;
+  since?: string;
+  until?: string;
   today?: boolean;
+  yesterday?: boolean;
+  thisWeek?: boolean;
+  lastWeek?: boolean;
   week?: boolean;
   author?: string;
   format?: "table" | "json" | "summary";

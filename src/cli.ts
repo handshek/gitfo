@@ -1,4 +1,4 @@
-import { Command } from "commander";
+import { Command, Option } from "commander";
 import { CLIOptions } from "./types.js";
 
 const program = new Command();
@@ -16,10 +16,21 @@ program
     "Scan multiple repositories in specified directories",
   )
   .option("-d, --date <date>", "Show stats for specific date (YYYY-MM-DD)")
+  .option("--since <date>", "Show stats from specific date (YYYY-MM-DD)")
+  .option("--until <date>", "Show stats until specific date (YYYY-MM-DD)")
   .option("-t, --today", "Show stats for today")
-  .option("-w, --week", "Show stats for last 7 days")
+  .option("--yesterday", "Show stats for yesterday")
+  .option("--this-week", "Show stats for this week")
+  .option("--last-week", "Show stats for last week")
+  .option("-w, --week", "Alias for --this-week")
   .option("-a, --author <name|email>", "Filter by git author name or email")
-  .option("--format <type>", "Output format: table, json, or summary", "table")
+  .addOption(
+    new Option("--format <type>", "Output format").choices([
+      "table",
+      "json",
+      "summary",
+    ]).default("table"),
+  )
   .option("--include-merges", "Include merge commits in stats")
   .option("-v, --verbose", "Show detailed commit information");
 
@@ -30,7 +41,12 @@ export function parseCLI(): CLIOptions {
   return {
     scan: options.scan,
     date: options.date,
+    since: options.since,
+    until: options.until,
     today: options.today ?? false,
+    yesterday: options.yesterday ?? false,
+    thisWeek: options.thisWeek ?? false,
+    lastWeek: options.lastWeek ?? false,
     week: options.week ?? false,
     author: options.author,
     format: options.format ?? "table",
