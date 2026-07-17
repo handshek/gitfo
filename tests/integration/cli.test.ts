@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 import { execFileSync } from "child_process";
@@ -78,6 +78,19 @@ describe("gitfo CLI", () => {
 
   it("prints version", () => {
     expect(runCli(["--version"], projectRoot).trim()).toBe("1.0.0");
+  });
+
+  it("builds a runnable dist CLI with a shebang", () => {
+    execFileSync("bun", ["run", "build"], { cwd: projectRoot, stdio: "ignore" });
+
+    const distPath = join(projectRoot, "dist/index.js");
+    expect(readFileSync(distPath, "utf8")).toMatch(/^#!\/usr\/bin\/env node/);
+    expect(
+      execFileSync("node", [distPath, "--version"], {
+        cwd: projectRoot,
+        encoding: "utf8",
+      }).trim(),
+    ).toBe("1.0.0");
   });
 
   it("rejects invalid formats", () => {

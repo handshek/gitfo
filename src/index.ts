@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { parseCLI } from "./cli.js";
 import { parseDateRange } from "./utils/date.js";
 import { getGitUserName, getGitUserEmail, isGitRepo } from "./utils/git.js";

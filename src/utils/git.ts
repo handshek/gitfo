@@ -1,10 +1,21 @@
-import { existsSync } from "fs";
-import { join } from "path";
+import { execFileSync } from "child_process";
 import simpleGit, { SimpleGit } from "simple-git";
 
 export function isGitRepo(path: string): boolean {
-  const gitDir = join(path, ".git");
-  return existsSync(gitDir);
+  try {
+    const output = execFileSync(
+      "git",
+      ["-C", path, "rev-parse", "--is-inside-work-tree"],
+      {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      },
+    );
+
+    return output.trim() === "true";
+  } catch {
+    return false;
+  }
 }
 
 export async function getGitUserEmail(path?: string): Promise<string | null> {
