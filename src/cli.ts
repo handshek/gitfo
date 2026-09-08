@@ -1,5 +1,6 @@
 import { Command, Option } from "commander";
 import { CLIOptions } from "./types.js";
+import { getPackageVersion } from "./utils/version.js";
 
 const program = new Command();
 
@@ -8,7 +9,7 @@ program
   .description(
     "A blazing-fast CLI tool to analyze git commits and show daily coding activity stats",
   )
-  .version("1.0.0");
+  .version(getPackageVersion());
 
 program
   .option(

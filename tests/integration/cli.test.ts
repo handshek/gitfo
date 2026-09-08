@@ -6,6 +6,9 @@ import { format } from "date-fns";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 const projectRoot = process.cwd();
+const packageVersion = JSON.parse(
+  readFileSync(join(projectRoot, "package.json"), "utf8"),
+).version as string;
 const cliPath = join(projectRoot, "src/index.ts");
 const today = format(new Date(), "yyyy-MM-dd");
 const commitDate = new Date(Date.now() - 60 * 60 * 1000)
@@ -77,7 +80,7 @@ describe("gitfo CLI", () => {
   });
 
   it("prints version", () => {
-    expect(runCli(["--version"], projectRoot).trim()).toBe("1.0.0");
+    expect(runCli(["--version"], projectRoot).trim()).toBe(packageVersion);
   });
 
   it("builds a runnable dist CLI with a shebang", () => {
@@ -90,7 +93,7 @@ describe("gitfo CLI", () => {
         cwd: projectRoot,
         encoding: "utf8",
       }).trim(),
-    ).toBe("1.0.0");
+    ).toBe(packageVersion);
   });
 
   it("rejects invalid formats", () => {
