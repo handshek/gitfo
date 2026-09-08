@@ -16,6 +16,7 @@ const repoStats: RepoStats = {
       linesDeleted: 3,
     },
   ],
+  analysisFailures: [],
   totalCommits: 1,
   totalFilesChanged: 2,
   totalLinesAdded: 10,
@@ -42,7 +43,9 @@ describe("json output", () => {
   it("formats multi repo stats as parseable JSON", () => {
     const stats: MultiRepoStats = {
       repositories: [repoStats],
+      failedRepositories: [{ path: "/tmp/broken", message: "boom" }],
       totalRepositories: 1,
+      totalFailedRepositories: 1,
       totalCommits: 1,
       totalFilesChanged: 2,
       totalLinesAdded: 10,
@@ -54,6 +57,8 @@ describe("json output", () => {
 
     expect(parsed).toMatchObject({
       totalRepositories: 1,
+      totalFailedRepositories: 1,
+      failedRepositories: [{ path: "/tmp/broken", message: "boom" }],
       repositories: [{ name: "gitfo" }],
     });
   });

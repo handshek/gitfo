@@ -29,10 +29,17 @@ export interface CommitInfo {
   linesDeleted: number;
 }
 
+export interface CommitAnalysisFailure {
+  hash: string;
+  message: string;
+  reason: string;
+}
+
 export interface RepoStats {
   name: string;
   path: string;
   commits: CommitInfo[];
+  analysisFailures: CommitAnalysisFailure[];
   totalCommits: number;
   totalFilesChanged: number;
   totalLinesAdded: number;
@@ -40,9 +47,16 @@ export interface RepoStats {
   netChange: number;
 }
 
+export interface RepoAnalysisFailure {
+  path: string;
+  message: string;
+}
+
 export interface MultiRepoStats {
   repositories: RepoStats[];
+  failedRepositories: RepoAnalysisFailure[];
   totalRepositories: number;
+  totalFailedRepositories: number;
   totalCommits: number;
   totalFilesChanged: number;
   totalLinesAdded: number;

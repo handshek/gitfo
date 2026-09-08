@@ -21,8 +21,20 @@
     "productivity",
     "developer-tools"
   ],
-  "author": "",
+  "author": "handshek <buneeisslo@gmail.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/handshek/gitfo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/handshek/gitfo/issues"
+  },
+  "homepage": "https://github.com/handshek/gitfo#readme",
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "engines": {
     "node": ">=18.0.0",
     "bun": ">=1.0.0"

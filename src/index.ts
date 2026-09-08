@@ -11,6 +11,11 @@ import { findGitRepos } from "./core/scanner.js";
 import { runInParallel } from "./utils/parallel.js";
 import { aggregateRepositories } from "./core/aggregator.js";
 import { cwd } from "process";
+import { RepoAnalysisFailure, RepoStats } from "./types.js";
+
+type RepositoryAnalysisResult =
+  | { ok: true; stats: RepoStats }
+  | { ok: false; failure: RepoAnalysisFailure };
 
 // Parse CLI - commander will handle --help and --version automatically
 const options = parseCLI();
@@ -70,7 +75,7 @@ const options = parseCLI();
             break;
           case "table":
           default:
-            output = formatTable(stats, dateRange, author);
+            output = formatTable(stats, dateRange, author, options.verbose);
         }
 
         console.log(output);
@@ -89,15 +94,24 @@ const options = parseCLI();
 
       try {
         const repoPaths = findGitRepos(options.scan);
-        const repositories = await runInParallel(repoPaths, async (repoPath) =>
-          analyzeRepository(
+        const results = await runInParallel(repoPaths, async (repoPath) =>
+          analyzeRepositorySafely(
             repoPath,
             dateRange,
             author,
             options.includeMerges ?? false,
           ),
         );
-        const aggregated = aggregateRepositories(repositories);
+        const repositories = results
+          .filter((result): result is { ok: true; stats: RepoStats } => result.ok)
+          .map((result) => result.stats);
+        const failedRepositories = results
+          .filter(
+            (result): result is { ok: false; failure: RepoAnalysisFailure } =>
+              !result.ok,
+          )
+          .map((result) => result.failure);
+        const aggregated = aggregateRepositories(repositories, failedRepositories);
         if (format !== "json") {
           loader.stop();
         }
@@ -113,7 +127,12 @@ const options = parseCLI();
             break;
           case "table":
           default:
-            output = formatMultiRepoTable(aggregated, dateRange, author);
+            output = formatMultiRepoTable(
+              aggregated,
+              dateRange,
+              author,
+              options.verbose,
+            );
         }
 
         console.log(output);
@@ -132,3 +151,25 @@ const options = parseCLI();
     throw error;
   }
 })();
+
+async function analyzeRepositorySafely(
+  repoPath: string,
+  dateRange: ReturnType<typeof parseDateRange>,
+  author: string | null,
+  includeMerges: boolean,
+): Promise<RepositoryAnalysisResult> {
+  try {
+    return {
+      ok: true,
+      stats: await analyzeRepository(repoPath, dateRange, author, includeMerges),
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      failure: {
+        path: repoPath,
+        message: error instanceof Error ? error.message : String(error),
+      },
+    };
+  }
+}

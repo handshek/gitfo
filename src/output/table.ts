@@ -7,6 +7,7 @@ export function formatTable(
   stats: RepoStats,
   dateRange: DateRange,
   author: string | null,
+  verbose: boolean = false,
 ): string {
   const output: string[] = [];
 
@@ -43,19 +44,17 @@ export function formatTable(
   );
 
   output.push(table.toString());
+  appendAnalysisFailures(output, stats);
 
   // Recent commits
   if (stats.commits.length > 0) {
     output.push("");
-    output.push(chalk.bold("Recent commits:"));
-    const commitsToShow = Math.min(5, stats.commits.length);
+    output.push(chalk.bold(verbose ? "Commits:" : "Recent commits:"));
+    const commitsToShow = verbose ? stats.commits.length : Math.min(5, stats.commits.length);
 
     for (let i = 0; i < commitsToShow; i++) {
       const commit = stats.commits[i];
-      const time = format(commit.date, "h:mm a");
-      const shortHash = chalk.gray(commit.hash.substring(0, 7));
-      const message = commit.message.split("\n")[0]; // First line only
-      output.push(`  ${shortHash} ${message} ${chalk.gray(`(${time})`)}`);
+      output.push(formatCommitLine(commit, verbose));
     }
 
     if (stats.commits.length > commitsToShow) {
@@ -74,6 +73,7 @@ export function formatMultiRepoTable(
   stats: MultiRepoStats,
   dateRange: DateRange,
   author: string | null,
+  verbose: boolean = false,
 ): string {
   const output: string[] = [];
   const startDate = format(dateRange.start, "yyyy-MM-dd");
@@ -108,10 +108,17 @@ export function formatMultiRepoTable(
   );
 
   output.push(totalsTable.toString());
+  appendRepoFailures(output, stats);
 
   if (stats.repositories.length === 0) {
     output.push("");
-    output.push(chalk.yellow("No git repositories found in the scan paths."));
+    output.push(
+      chalk.yellow(
+        stats.failedRepositories.length > 0
+          ? "No repositories were successfully analyzed."
+          : "No git repositories found in the scan paths.",
+      ),
+    );
     return output.join("\n");
   }
 
@@ -137,5 +144,66 @@ export function formatMultiRepoTable(
   output.push(chalk.bold("Per-repository breakdown:"));
   output.push(repoTable.toString());
 
+  if (verbose) {
+    for (const repo of stats.repositories) {
+      output.push("");
+      output.push(chalk.bold(`${repo.name} commits:`));
+      appendAnalysisFailures(output, repo);
+
+      if (repo.commits.length === 0) {
+        output.push(chalk.yellow("  No commits found for this date range."));
+        continue;
+      }
+
+      for (const commit of repo.commits) {
+        output.push(formatCommitLine(commit, true));
+      }
+    }
+  }
+
   return output.join("\n");
+}
+
+function formatCommitLine(
+  commit: RepoStats["commits"][number],
+  verbose: boolean,
+): string {
+  const shortHash = chalk.gray(commit.hash.substring(0, 7));
+  const message = commit.message.split("\n")[0];
+
+  if (!verbose) {
+    const time = format(commit.date, "h:mm a");
+    return `  ${shortHash} ${message} ${chalk.gray(`(${time})`)}`;
+  }
+
+  const timestamp = format(commit.date, "yyyy-MM-dd h:mm a");
+  const added = chalk.green(`+${commit.linesAdded}`);
+  const deleted = chalk.red(`-${commit.linesDeleted}`);
+  return `  ${shortHash} ${chalk.gray(timestamp)} ${commit.author} | files: ${commit.filesChanged} | ${added} ${deleted} | ${message}`;
+}
+
+function appendAnalysisFailures(output: string[], stats: RepoStats): void {
+  if (stats.analysisFailures.length === 0) {
+    return;
+  }
+
+  output.push("");
+  output.push(
+    chalk.yellow(
+      `Warning: ${stats.analysisFailures.length} commit(s) could not be analyzed.`,
+    ),
+  );
+}
+
+function appendRepoFailures(output: string[], stats: MultiRepoStats): void {
+  if (stats.failedRepositories.length === 0) {
+    return;
+  }
+
+  output.push("");
+  output.push(
+    chalk.yellow(
+      `Warning: ${stats.failedRepositories.length} repo(s) could not be analyzed.`,
+    ),
+  );
 }

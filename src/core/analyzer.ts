@@ -1,6 +1,11 @@
 import simpleGit, { SimpleGit } from "simple-git";
 import { basename } from "path";
-import { RepoStats, CommitInfo, DateRange } from "../types.js";
+import {
+  RepoStats,
+  CommitInfo,
+  DateRange,
+  CommitAnalysisFailure,
+} from "../types.js";
 import { formatDateForGit } from "../utils/date.js";
 
 // Git's empty tree hash
@@ -35,60 +40,18 @@ export async function analyzeRepository(
   const log = await git.log(logOptions);
 
   const commits: CommitInfo[] = [];
+  const analysisFailures: CommitAnalysisFailure[] = [];
 
   // Process each commit to get diff stats
   for (const commit of log.all) {
     try {
-      let diffSummary;
-
-      // Check if this is the root commit (no parent)
-      // Try to get parent commit hash
-      const parentCommit = await git
-        .raw(["rev-parse", `${commit.hash}^`])
-        .catch(() => null);
-
-      if (parentCommit && parentCommit.trim()) {
-        // Normal commit: compare with parent
-        diffSummary = await git.diffSummary([`${commit.hash}^`, commit.hash]);
-      } else {
-        // Root commit: compare with empty tree (no parent exists)
-        diffSummary = await git.diffSummary([EMPTY_TREE_HASH, commit.hash]);
-      }
-
-      const commitInfo: CommitInfo = {
+      commits.push(await analyzeCommit(git, commit));
+    } catch (error) {
+      analysisFailures.push({
         hash: commit.hash.substring(0, 7),
         message: commit.message || "",
-        author: commit.author_name || commit.author_email || "unknown",
-        date: new Date(commit.date),
-        filesChanged: diffSummary.files.length,
-        linesAdded: diffSummary.insertions,
-        linesDeleted: diffSummary.deletions,
-      };
-
-      commits.push(commitInfo);
-    } catch (error) {
-      // If diffSummary fails, try alternative method for root commit
-      try {
-        const diffSummary = await git.diffSummary([
-          EMPTY_TREE_HASH,
-          commit.hash,
-        ]);
-
-        const commitInfo: CommitInfo = {
-          hash: commit.hash.substring(0, 7),
-          message: commit.message || "",
-          author: commit.author_name || commit.author_email || "unknown",
-          date: new Date(commit.date),
-          filesChanged: diffSummary.files.length,
-          linesAdded: diffSummary.insertions,
-          linesDeleted: diffSummary.deletions,
-        };
-
-        commits.push(commitInfo);
-      } catch (fallbackError) {
-        // Skip commits that truly can't be analyzed
-        continue;
-      }
+        reason: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 
@@ -103,10 +66,43 @@ export async function analyzeRepository(
     name: repoName,
     path,
     commits,
+    analysisFailures,
     totalCommits,
     totalFilesChanged,
     totalLinesAdded,
     totalLinesDeleted,
     netChange,
+  };
+}
+
+async function analyzeCommit(git: SimpleGit, commit: any): Promise<CommitInfo> {
+  const diffSummary = await getCommitDiffSummary(git, commit.hash);
+  return toCommitInfo(commit, diffSummary);
+}
+
+async function getCommitDiffSummary(
+  git: SimpleGit,
+  commitHash: string,
+): Promise<any> {
+  const parentCommit = await git
+    .raw(["rev-parse", `${commitHash}^`])
+    .catch(() => null);
+
+  if (parentCommit && parentCommit.trim()) {
+    return git.diffSummary([`${commitHash}^`, commitHash]);
+  }
+
+  return git.diffSummary([EMPTY_TREE_HASH, commitHash]);
+}
+
+function toCommitInfo(commit: any, diffSummary: any): CommitInfo {
+  return {
+    hash: commit.hash.substring(0, 7),
+    message: commit.message || "",
+    author: commit.author_name || commit.author_email || "unknown",
+    date: new Date(commit.date),
+    filesChanged: diffSummary.files.length,
+    linesAdded: diffSummary.insertions,
+    linesDeleted: diffSummary.deletions,
   };
 }
