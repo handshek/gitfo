@@ -48,7 +48,7 @@ const options = parseCLI();
 
       // Analyze current repository with loading animation
       const loader = createLoader("Analyzing commits...", "diff");
-      if (format !== "json") {
+      if (format === "table") {
         loader.start();
       }
 
@@ -59,7 +59,7 @@ const options = parseCLI();
           author,
           options.includeMerges ?? false,
         );
-        if (format !== "json") {
+        if (format === "table") {
           loader.stop();
         }
 
@@ -80,7 +80,7 @@ const options = parseCLI();
 
         console.log(output);
       } catch (err) {
-        if (format !== "json") {
+        if (format === "table") {
           loader.stop("✗ Failed to analyze repository");
         }
         throw err;
@@ -88,7 +88,7 @@ const options = parseCLI();
     } else {
       const format = options.format ?? "table";
       const loader = createLoader("Scanning repositories...", "hash");
-      if (format !== "json") {
+      if (format === "table") {
         loader.start();
       }
 
@@ -112,7 +112,7 @@ const options = parseCLI();
           )
           .map((result) => result.failure);
         const aggregated = aggregateRepositories(repositories, failedRepositories);
-        if (format !== "json") {
+        if (format === "table") {
           loader.stop();
         }
 
@@ -137,7 +137,7 @@ const options = parseCLI();
 
         console.log(output);
       } catch (err) {
-        if (format !== "json") {
+        if (format === "table") {
           loader.stop("✗ Failed to scan repositories");
         }
         throw err;

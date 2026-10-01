@@ -153,7 +153,9 @@ describe("gitfo CLI", () => {
     const repoPath = createRepo();
     const output = runCli(["--format", "summary", "--this-week"], repoPath);
 
-    expect(output).toContain("Commits: 1");
+    expect(output).toBe(
+      "Commits: 1 | Files: 1 | +1 | -0 | Net: +1\n",
+    );
   });
 
   it("expands single-repo table output in verbose mode", () => {
