@@ -1,94 +1,154 @@
 # Gitfo
 
-A CLI tool to analyze git commits and show daily coding activity stats.
+[![CI](https://github.com/handshek/gitfo/actions/workflows/ci.yml/badge.svg)](https://github.com/handshek/gitfo/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18-339933?logo=node.js&logoColor=white)](package.json)
+
+Gitfo is a small TypeScript CLI for reviewing daily coding activity from Git
+history. It can analyze the current repository or scan a directory containing
+multiple repositories, then render the result as a terminal table, one-line
+summary, or JSON.
+
+Gitfo is feature-complete for personal use and maintained as a portfolio
+project.
 
 ## Features
 
-- Analyze commits in a single repository or scan multiple repositories to aggregate stats.
-- Show daily coding activity stats including commits, files changed, lines added/deleted, and net change.
-- Skip merge commits by default, and respect `.gitignore` during scan discovery.
-- Filter by specific date ranges (e.g., `--today`, `--yesterday`, `--this-week`, `--since`, `--until`).
-- Filter by author name or email.
-- Output formats available: `table`, `json`, and `summary`.
-- Verbose table output for full commit details.
-- Fast, built with Bun and runs in a Node.js compatible environment.
+- Count commits, files changed, lines added, lines deleted, and net change.
+- Analyze one repository or aggregate multiple repositories in parallel.
+- Filter by date range and author name or email.
+- Exclude merge commits by default, with an option to include them.
+- Render human-readable tables, script-friendly summaries, or structured JSON.
+- Show full per-commit details with verbose table output.
+- Continue a multi-repository scan when an individual repository fails.
+
+## Requirements
+
+- Git
+- Node.js 18 or newer
+- Bun 1.0 or newer for development and building from source
 
 ## Installation
 
+Gitfo is currently installed from source:
+
 ```bash
-# Install dependencies
-bun install
-
-# Build the project
+git clone https://github.com/handshek/gitfo.git
+cd gitfo
+bun install --frozen-lockfile
 bun run build
-
-# Link globally to use the CLI
-npm link # or bun link
+npm link
 ```
+
+After linking, `gitfo` is available from any directory. Run
+`npm unlink -g gitfo` to remove the global link.
 
 ## Usage
 
-```bash
-# Analyze the current repository for today
-gitfo
+Run Gitfo inside a Git repository to analyze today's activity:
 
-# Analyze past week
+```bash
+gitfo
+```
+
+Example summary:
+
+```text
+Commits: 4 | Files: 11 | +286 | -73 | Net: +213
+```
+
+Common commands:
+
+```bash
+# This week in the current repository
 gitfo --this-week
 
-# Analyze specific date range
+# A specific date range
 gitfo --since 2026-01-01 --until 2026-01-31
 
-# Filter by author name or email
+# Commits matching an author name or email
 gitfo --author "user@example.com"
 
-# Scan multiple repositories within a directory
-gitfo --scan ~/projects
+# Aggregate repositories found under one or more directories
+gitfo --scan ~/projects ~/work
 
-# Change output format
+# Machine-readable output
 gitfo --format json
+
+# A single output line suitable for scripts
 gitfo --format summary
 
-# Show every matching commit with full details
+# Every matching commit with author and diff details
 gitfo --verbose
 
-# Include merge commits
+# Include merge commits in the totals
 gitfo --include-merges
 ```
 
-## Options
+Run `gitfo --help` for the complete option list.
 
-| Option              | Description                                    |
-| :------------------ | :--------------------------------------------- |
-| `--scan <paths...>` | Scan specific directories for git repositories |
-| `--date <date>`     | Analyze a specific date                        |
-| `--since <date>`    | Analyze from a specific date                   |
-| `--until <date>`    | Analyze up to a specific date                  |
-| `--today`           | Analyze today's commits                        |
-| `--yesterday`       | Analyze yesterday's commits                    |
-| `--this-week`       | Analyze this week's commits                    |
-| `--last-week`       | Analyze last week's commits                    |
-| `--author <name|email>` | Filter by author name or email             |
-| `--format <type>`   | Output format (`table`, `json`, or `summary`)  |
-| `--include-merges`  | Include merge commits                          |
-| `-v, --verbose`     | Verbose output                                 |
+## Date filters
 
-## Scan Behavior
+Gitfo defaults to today. The following date modes are available and mutually
+exclusive:
 
-`gitfo --scan` recursively discovers git repositories up to the default scan depth. It skips `.git`, `node_modules`, and paths ignored by git ignore rules when available. If one repository cannot be analyzed, scan mode still reports successful repositories and includes a warning. JSON output includes failed repositories as structured records with `path` and `message`.
+| Option | Range |
+| --- | --- |
+| `--date YYYY-MM-DD` | One calendar day |
+| `--since YYYY-MM-DD` | From a date through now |
+| `--until YYYY-MM-DD` | All history through a date |
+| `--today` | Today through the current time |
+| `--yesterday` | The previous calendar day |
+| `--this-week`, `--week` | Monday through now |
+| `--last-week` | The previous Monday through Sunday |
 
-## Output Formats
+## Output formats
 
-- `table`: Human-readable default output.
-- `summary`: Compact one-line output for scripts.
-- `json`: Machine-readable stats, including commits, analysis failures, and scan failures.
+- `table` is the default interactive terminal output and shows up to five
+  recent commits unless `--verbose` is used.
+- `summary` writes one clean line to stdout for shell scripts.
+- `json` includes commit records, analysis failures, repository failures, and
+  aggregate totals.
 
-`--verbose` only changes table output. It shows all commits in single-repo mode and per-repository commit breakdowns in scan mode.
+## Scan behavior and limitations
 
-## Release Checklist
+- Repository discovery searches three directory levels deep by default.
+- Discovery skips `.git`, `node_modules`, and Git-ignored paths when Git can
+  evaluate the ignore rules. Outside a Git worktree, the fallback ignore parser
+  supports common literal directory patterns but not every `.gitignore`
+  feature.
+- Gitfo stops descending after it finds a repository root, so nested
+  repositories are not included beneath that root.
+- Without `--author`, Gitfo uses the current or global Git user name, then
+  email. Scan mode applies that identity to every discovered repository.
+- “Files changed” is the sum of files touched per commit, not a count of unique
+  files across the complete date range.
+
+## Development
 
 ```bash
+bun install --frozen-lockfile
 bun run test
+bun run test:coverage
 bun run build
-node dist/index.js --version
-node dist/index.js --help
+bun run test:package
 ```
+
+Continuous integration runs the test suite, build, coverage report, and packed
+installation smoke test on the minimum supported Node.js release and a current
+Node.js release.
+
+## Project structure
+
+```text
+src/
+├── cli.ts              command-line options
+├── index.ts            application orchestration
+├── core/               repository analysis, scanning, and aggregation
+├── output/             table, summary, and JSON renderers
+└── utils/              date, Git, loader, parallel, and version helpers
+```
+
+## License
+
+[MIT](LICENSE)
