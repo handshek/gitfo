@@ -12,6 +12,8 @@ import { runInParallel } from "./utils/parallel.js";
 import { aggregateRepositories } from "./core/aggregator.js";
 import { cwd } from "process";
 import { RepoAnalysisFailure, RepoStats } from "./types.js";
+import { generateChangelog } from "./core/changelog.js";
+import { formatChangelog } from "./output/changelog.js";
 
 type RepositoryAnalysisResult =
   | { ok: true; stats: RepoStats }
@@ -23,6 +25,11 @@ const options = parseCLI();
 // Main execution
 (async () => {
   try {
+    if ("command" in options) {
+      const result = await generateChangelog(cwd(), options.from, options.to);
+      console.log(options.format === "json" ? JSON.stringify(result, null, 2) : formatChangelog(result));
+      return;
+    }
     // Parse date range
     const dateRange = parseDateRange(options);
 

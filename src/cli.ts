@@ -1,11 +1,12 @@
 import { Command, Option } from "commander";
-import { CLIOptions } from "./types.js";
+import { CLIOptions, ChangelogOptions } from "./types.js";
 import { getPackageVersion } from "./utils/version.js";
 
 const program = new Command();
 
 program
   .name("gitfo")
+  .enablePositionalOptions()
   .description(
     "A blazing-fast CLI tool to analyze git commits and show daily coding activity stats",
   )
@@ -33,10 +34,20 @@ program
     ]).default("table"),
   )
   .option("--include-merges", "Include merge commits in stats")
-  .option("-v, --verbose", "Show detailed commit information");
+  .option("-v, --verbose", "Show detailed commit information")
+  .action(() => {});
 
-export function parseCLI(): CLIOptions {
+let subcommand: ChangelogOptions | undefined;
+program.command("changelog")
+  .description("Extract factual release entries from an explicit Git range (all authors)")
+  .requiredOption("--from <ref>", "Starting tag, branch, or commit (exclusive)")
+  .requiredOption("--to <ref>", "Ending tag, branch, or commit (inclusive)")
+  .addOption(new Option("--format <type>", "Output format").choices(["markdown", "json"]).default("markdown"))
+  .action(options => { subcommand = { command: "changelog", ...options, withContext: false }; });
+
+export function parseCLI(): CLIOptions | ChangelogOptions {
   program.parse();
+  if (subcommand) return subcommand;
   const options = program.opts();
 
   return {

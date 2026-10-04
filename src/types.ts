@@ -14,6 +14,42 @@ export interface CLIOptions {
   verbose?: boolean;
 }
 
+export interface ChangelogOptions {
+  command: "changelog";
+  from: string;
+  to: string;
+  format: "markdown" | "json";
+  withContext: boolean;
+}
+
+export interface HistoryCommit {
+  hash: string;
+  parents: string[];
+  author: { name: string; email: string };
+  date: string;
+  subject: string;
+  body: string;
+  files: { status: string; path: string; previousPath?: string }[];
+  url?: string;
+}
+
+export interface ChangelogEntry {
+  category: "breaking" | "features" | "fixes" | "other";
+  description: string;
+  scope?: string;
+  breaking: boolean;
+  commits: HistoryCommit[];
+}
+
+export interface Changelog {
+  schemaVersion: 1;
+  kind: "changelog";
+  range: { from: { ref: string; hash: string }; to: { ref: string; hash: string } };
+  entries: ChangelogEntry[];
+  changedFiles: string[];
+  limitations: string[];
+}
+
 export interface DateRange {
   start: Date;
   end: Date;
