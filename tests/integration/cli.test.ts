@@ -11,7 +11,8 @@ const packageVersion = JSON.parse(
 ).version as string;
 const cliPath = join(projectRoot, "src/index.ts");
 const today = format(new Date(), "yyyy-MM-dd");
-const commitDate = new Date(Date.now() - 60 * 60 * 1000)
+// Keep fixtures in today's week/day, including runs just after midnight.
+const commitDate = new Date(Math.floor(Date.now() / 1000) * 1000)
   .toISOString()
   .replace(/\.\d{3}Z$/, ".000Z");
 
