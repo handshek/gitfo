@@ -93,25 +93,30 @@ against a Git/git-cliff-based agent baseline; precision is currently noisy.
 Do not add MCP, AI rewriting, persistent storage, or automated required-edit
 enforcement on the strength of this sample.
 
-## Verification and remaining release check
+## Verification and release follow-up
 
-- Unit/integration coverage run: 61 passing tests; the existing test that
-  invokes a build was deliberately excluded.
+- Initial unit/integration coverage run: 61 passing tests; the existing test
+  that invokes a build was deliberately excluded under `AGENTS.md`.
+- On 2026-10-05, the user explicitly authorized rebuilding, verifying, and
+  pushing. `bun run build` and the full `bun run test:coverage` passed:
+  **62 tests, no skips**, including the compiled CLI/shebang test.
 - TypeScript source and benchmark harness: `tsc --noEmit` passed.
 - Bun source CLI: changelog Markdown/JSON, context Markdown/JSON, help,
   version, old activity commands, invalid refs, merge and squash behavior,
   annotated tags, unusual paths, directory aliases, working-tree selection,
   sparse/shallow histories, and the 1,000-eligible-commit window were exercised.
-- A separate Node.js 22 runtime source-loader check executes the TypeScript
-  modules in memory, without emitting `dist`; it is not a packed-install check.
-- The package smoke script now checks installed changelog/context commands as
-  well as version/help. Fresh `dist` and packed-install execution remain
-  unverified locally: `AGENTS.md` prohibits starting build/watch/link commands,
-  and the existing `dist` predates these changes. Existing CI builds before
-  the package check on its Node.js matrix.
+- Compiled CLI checks under Node.js 22.23.2 passed: version, root/subcommand
+  help, Markdown changelogs, JSON changelogs with context anchored at `--from`,
+  and working-tree JSON context.
+- `bun run test:package` passed after packing and installing into a fresh
+  temporary directory. The installed CLI passed version/help checks,
+  changelog Markdown/JSON with historical context, and file-context JSON.
+  The first sandboxed attempt could not resolve the npm registry; the rerun
+  with network access succeeded. Local runtime verification used Node.js 22;
+  the minimum Node.js 18 remains part of the existing CI matrix.
 - Midnight-crossing activity fixtures were corrected separately in `a2afe76`;
   no activity implementation was changed.
 
 README additions preserve all previous content, including acknowledgements and
-the star footer. No version bump, upstream issue mutation, publishing, or push
-was part of this implementation.
+the star footer. No version bump, upstream issue mutation, or npm publishing
+was performed.
