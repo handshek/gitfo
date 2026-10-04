@@ -14,6 +14,8 @@ import { cwd } from "process";
 import { RepoAnalysisFailure, RepoStats } from "./types.js";
 import { generateChangelog } from "./core/changelog.js";
 import { formatChangelog } from "./output/changelog.js";
+import { generateContext } from "./core/context.js";
+import { formatContext } from "./output/context.js";
 
 type RepositoryAnalysisResult =
   | { ok: true; stats: RepoStats }
@@ -26,8 +28,13 @@ const options = parseCLI();
 (async () => {
   try {
     if ("command" in options) {
-      const result = await generateChangelog(cwd(), options.from, options.to);
-      console.log(options.format === "json" ? JSON.stringify(result, null, 2) : formatChangelog(result));
+      if (options.command === "changelog") {
+        const result = await generateChangelog(cwd(), options.from, options.to, options.withContext);
+        console.log(options.format === "json" ? JSON.stringify(result, null, 2) : formatChangelog(result));
+      } else {
+        const result = await generateContext(cwd(), options);
+        console.log(options.format === "json" ? JSON.stringify(result, null, 2) : formatContext(result));
+      }
       return;
     }
     // Parse date range

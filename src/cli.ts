@@ -1,5 +1,5 @@
 import { Command, Option } from "commander";
-import { CLIOptions, ChangelogOptions } from "./types.js";
+import { CLIOptions, ChangelogOptions, ContextOptions } from "./types.js";
 import { getPackageVersion } from "./utils/version.js";
 
 const program = new Command();
@@ -37,15 +37,33 @@ program
   .option("-v, --verbose", "Show detailed commit information")
   .action(() => {});
 
-let subcommand: ChangelogOptions | undefined;
+let subcommand: ChangelogOptions | ContextOptions | undefined;
 program.command("changelog")
   .description("Extract factual release entries from an explicit Git range (all authors)")
   .requiredOption("--from <ref>", "Starting tag, branch, or commit (exclusive)")
   .requiredOption("--to <ref>", "Ending tag, branch, or commit (inclusive)")
   .addOption(new Option("--format <type>", "Output format").choices(["markdown", "json"]).default("markdown"))
-  .action(options => { subcommand = { command: "changelog", ...options, withContext: false }; });
+  .option("--with-context", "Attach advisory co-change history anchored at --from")
+  .action(options => { rejectActivityOptions(); subcommand = { command: "changelog", ...options, withContext: options.withContext ?? false }; });
 
-export function parseCLI(): CLIOptions | ChangelogOptions {
+program.command("context")
+  .description("Suggest companion files from historical co-changes (advisory only)")
+  .addOption(new Option("--files <paths...>", "Explicit file paths, relative to the current directory").conflicts("workingTree"))
+  .addOption(new Option("--working-tree", "Use staged, unstaged, and untracked paths").conflicts("files"))
+  .option("--ref <ref>", "History endpoint (tag, branch, or commit)", "HEAD")
+  .addOption(new Option("--format <type>", "Output format").choices(["markdown", "json"]).default("markdown"))
+  .action((options, command) => {
+    rejectActivityOptions();
+    if (!options.files?.length && !options.workingTree) command.error("Choose --files <paths...> or --working-tree.");
+    subcommand = { command: "context", ...options, workingTree: options.workingTree ?? false };
+  });
+
+function rejectActivityOptions(): void {
+  const supplied = program.options.filter(option => program.getOptionValueSource(option.attributeName()) === "cli");
+  if (supplied.length) program.error(`Activity options (${supplied.map(option => option.long).join(", ")}) cannot be combined with a subcommand. Put subcommand options after its name.`);
+}
+
+export function parseCLI(): CLIOptions | ChangelogOptions | ContextOptions {
   program.parse();
   if (subcommand) return subcommand;
   const options = program.opts();

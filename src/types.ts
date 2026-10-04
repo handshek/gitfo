@@ -22,6 +22,14 @@ export interface ChangelogOptions {
   withContext: boolean;
 }
 
+export interface ContextOptions {
+  command: "context";
+  files?: string[];
+  workingTree: boolean;
+  ref: string;
+  format: "markdown" | "json";
+}
+
 export interface HistoryCommit {
   hash: string;
   parents: string[];
@@ -39,6 +47,7 @@ export interface ChangelogEntry {
   scope?: string;
   breaking: boolean;
   commits: HistoryCommit[];
+  context?: HistoryContext;
 }
 
 export interface Changelog {
@@ -47,6 +56,34 @@ export interface Changelog {
   range: { from: { ref: string; hash: string }; to: { ref: string; hash: string } };
   entries: ChangelogEntry[];
   changedFiles: string[];
+  limitations: string[];
+}
+
+export interface FileContext {
+  path: string;
+  eligibleCommits: number;
+  companions: {
+    path: string;
+    sharedCommits: number;
+    frequency: number;
+    evidence: { hash: string; subject: string; url?: string }[];
+  }[];
+}
+
+export interface HistoryContext {
+  schemaVersion: 1;
+  kind: "context";
+  at: { ref: string; hash: string };
+  source: "files" | "working-tree";
+  files: FileContext[];
+  history: {
+    eligibleCommits: number;
+    examinedCommits: number;
+    excluded: { merges: number; roots: number; largeChangesets: number };
+    limits: { commits: number; filesPerCommit: number; minSharedCommits: number; companions: number; evidence: number };
+    windowLimitReached: boolean;
+    shallow: boolean;
+  };
   limitations: string[];
 }
 
