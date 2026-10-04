@@ -1,0 +1,565 @@
+{
+  "evaluatedAt": "2026-10-04T18:39:28.438Z",
+  "tools": {
+    "bun": "1.3.9",
+    "git": "2.50.1 (Apple Git-155)"
+  },
+  "note": "Computed via source modules before the final documentation/validation commit. Timings are warm internal calls, not CLI process benchmarks; these selected samples do not establish required edits or product impact.",
+  "datasets": [
+    {
+      "schemaVersion": 1,
+      "repository": "/private/tmp/gitfo-changelog-baseline.NZ72N8/commander.js",
+      "range": {
+        "from": {
+          "ref": "v12.0.0",
+          "hash": "83c3f4e391754d2f80b179acc4bccc2d4d0c863d"
+        },
+        "to": {
+          "ref": "v12.1.0",
+          "hash": "970ecae402b253de691e6a9066fea22f38fe7431"
+        }
+      },
+      "methodology": "Newest eligible held-out commits; first sorted source path (or first path) is the target. Only its first-parent history is used. Other held-out paths are observed co-changes, not proven required edits. No random or exhaustive evaluation.",
+      "summary": {
+        "eligibleHeldOutCommits": 7,
+        "samples": 7,
+        "suggestions": 28,
+        "observedCompanions": 37,
+        "hits": 8,
+        "observedPrecision": 0.2857142857142857,
+        "observedRecall": 0.21621621621621623,
+        "samplesWithSuggestions": 6,
+        "samplesWithHits": 6
+      },
+      "results": [
+        {
+          "hash": "970ecae402b253de691e6a9066fea22f38fe7431",
+          "subject": "12.1.0",
+          "historyAt": "4a9b21153889312d27ecf11c98978ff58891f005",
+          "target": "package-lock.json",
+          "actualCompanions": [
+            "package.json"
+          ],
+          "suggestions": [
+            "package.json",
+            "CHANGELOG.md",
+            "typings/index.d.ts",
+            "typings/index.test-d.ts",
+            ".eslintrc.js"
+          ],
+          "hits": [
+            "package.json"
+          ],
+          "notObserved": [
+            "CHANGELOG.md",
+            "typings/index.d.ts",
+            "typings/index.test-d.ts",
+            ".eslintrc.js"
+          ],
+          "missed": [],
+          "elapsedMs": 89,
+          "targetHistoryCommits": 152
+        },
+        {
+          "hash": "d3b48f7fe7903b6c150415cb03d5e2992705fa29",
+          "subject": "Remove unimplemented fullDescription from TypeScript (#2191)",
+          "historyAt": "c749eb89c899d06562784d8048e065becd2362a4",
+          "target": "typings/index.d.ts",
+          "actualCompanions": [
+            "typings/index.test-d.ts"
+          ],
+          "suggestions": [
+            "Readme.md",
+            "typings/index.test-d.ts",
+            "index.js",
+            "typings/commander-tests.ts",
+            "lib/command.js"
+          ],
+          "hits": [
+            "typings/index.test-d.ts"
+          ],
+          "notObserved": [
+            "Readme.md",
+            "index.js",
+            "typings/commander-tests.ts",
+            "lib/command.js"
+          ],
+          "missed": [],
+          "elapsedMs": 87,
+          "targetHistoryCommits": 116
+        },
+        {
+          "hash": "c749eb89c899d06562784d8048e065becd2362a4",
+          "subject": "Bump tsd from 0.30.4 to 0.31.0 (#2172)",
+          "historyAt": "f09d0b29aad82ac69373a564d06ed90643695796",
+          "target": "package-lock.json",
+          "actualCompanions": [
+            "package.json"
+          ],
+          "suggestions": [
+            "package.json",
+            "CHANGELOG.md",
+            "typings/index.d.ts",
+            "typings/index.test-d.ts",
+            ".eslintrc.js"
+          ],
+          "hits": [
+            "package.json"
+          ],
+          "notObserved": [
+            "CHANGELOG.md",
+            "typings/index.d.ts",
+            "typings/index.test-d.ts",
+            ".eslintrc.js"
+          ],
+          "missed": [],
+          "elapsedMs": 85,
+          "targetHistoryCommits": 151
+        },
+        {
+          "hash": "6c740e963f4dc01e08b35979bdae7b4f865110f1",
+          "subject": "Bump eslint-plugin-jest from 27.9.0 to 28.3.0 (#2188)",
+          "historyAt": "27b134962f4cb74ce29bf2f0b12dd16d363d6d74",
+          "target": "package-lock.json",
+          "actualCompanions": [
+            "package.json"
+          ],
+          "suggestions": [
+            "package.json",
+            "CHANGELOG.md",
+            "typings/index.d.ts",
+            "typings/index.test-d.ts",
+            ".eslintrc.js"
+          ],
+          "hits": [
+            "package.json"
+          ],
+          "notObserved": [
+            "CHANGELOG.md",
+            "typings/index.d.ts",
+            "typings/index.test-d.ts",
+            ".eslintrc.js"
+          ],
+          "missed": [],
+          "elapsedMs": 86,
+          "targetHistoryCommits": 148
+        },
+        {
+          "hash": "b95ea4479a27fefb1e311454930ccaf3ab58b723",
+          "subject": "Fix some JSDoc lint issues (#2181)",
+          "historyAt": "a9967826ca68aa346bb9320bc7ef1ca2a0609e81",
+          "target": "eslint.config.js",
+          "actualCompanions": [
+            "lib/argument.js",
+            "lib/command.js",
+            "lib/error.js",
+            "lib/help.js",
+            "lib/option.js",
+            "typings/index.d.ts"
+          ],
+          "suggestions": [],
+          "hits": [],
+          "notObserved": [],
+          "missed": [
+            "lib/argument.js",
+            "lib/command.js",
+            "lib/error.js",
+            "lib/help.js",
+            "lib/option.js",
+            "typings/index.d.ts"
+          ],
+          "elapsedMs": 87,
+          "targetHistoryCommits": 2
+        },
+        {
+          "hash": "b9ca39062455d25b564269e832372c87a6569f8a",
+          "subject": "Add auto-detection of args when node evaluating script code on command-line (#2164)",
+          "historyAt": "f7b84757065d6dda0a128f80405e4d8dc218edd7",
+          "target": "lib/command.js",
+          "actualCompanions": [
+            "Readme.md",
+            "tests/command.parse.test.js",
+            "typings/index.d.ts"
+          ],
+          "suggestions": [
+            "typings/index.d.ts",
+            "typings/index.test-d.ts",
+            "Readme.md",
+            "lib/help.js",
+            "lib/option.js"
+          ],
+          "hits": [
+            "typings/index.d.ts",
+            "Readme.md"
+          ],
+          "notObserved": [
+            "typings/index.test-d.ts",
+            "lib/help.js",
+            "lib/option.js"
+          ],
+          "missed": [
+            "tests/command.parse.test.js"
+          ],
+          "elapsedMs": 86,
+          "targetHistoryCommits": 62
+        },
+        {
+          "hash": "6fc933e3bb89c485dc62a6bcd2db499b2f16fad2",
+          "subject": "ESLint changes preparing for Prettier (#2153)",
+          "historyAt": "41b12cf8cdcca7f09a88154a3f32d043a5c29910",
+          "target": ".eslintrc.js",
+          "actualCompanions": [
+            ".github/PULL_REQUEST_TEMPLATE.md",
+            ".github/workflows/tests.yml",
+            ".prettierignore",
+            ".prettierrc.js",
+            "CONTRIBUTING.md",
+            "eslint.config.js",
+            "examples/arguments-custom-processing.js",
+            "examples/custom-command-class.js",
+            "examples/options-custom-processing.js",
+            "lib/command.js",
+            "lib/help.js",
+            "package-lock.json",
+            "package.json",
+            "tests/command.asterisk.test.js",
+            "tests/command.configureOutput.test.js",
+            "tests/command.positionalOptions.test.js",
+            "tests/command.showHelpAfterError.test.js",
+            "tests/command.showSuggestionAfterError.test.js",
+            "tests/help.suggestion.test.js",
+            "tests/ts-imports.test.ts",
+            "tsconfig.js.json",
+            "tsconfig.json",
+            "tsconfig.ts.json",
+            "typings/index.test-d.ts"
+          ],
+          "suggestions": [
+            "package.json",
+            "package-lock.json",
+            "typings/index.d.ts"
+          ],
+          "hits": [
+            "package.json",
+            "package-lock.json"
+          ],
+          "notObserved": [
+            "typings/index.d.ts"
+          ],
+          "missed": [
+            ".github/PULL_REQUEST_TEMPLATE.md",
+            ".github/workflows/tests.yml",
+            ".prettierignore",
+            ".prettierrc.js",
+            "CONTRIBUTING.md",
+            "eslint.config.js",
+            "examples/arguments-custom-processing.js",
+            "examples/custom-command-class.js",
+            "examples/options-custom-processing.js",
+            "lib/command.js",
+            "lib/help.js",
+            "tests/command.asterisk.test.js",
+            "tests/command.configureOutput.test.js",
+            "tests/command.positionalOptions.test.js",
+            "tests/command.showHelpAfterError.test.js",
+            "tests/command.showSuggestionAfterError.test.js",
+            "tests/help.suggestion.test.js",
+            "tests/ts-imports.test.ts",
+            "tsconfig.js.json",
+            "tsconfig.json",
+            "tsconfig.ts.json",
+            "typings/index.test-d.ts"
+          ],
+          "elapsedMs": 85,
+          "targetHistoryCommits": 10
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "repository": "/Users/abhi/dev/gitfo",
+      "range": {
+        "from": {
+          "ref": "71a23df7f12962ff8769a786748fff846fd79734",
+          "hash": "71a23df7f12962ff8769a786748fff846fd79734"
+        },
+        "to": {
+          "ref": "60a3b5d98ddbc134dc720d3c129c470140afc060",
+          "hash": "60a3b5d98ddbc134dc720d3c129c470140afc060"
+        }
+      },
+      "methodology": "Newest eligible held-out commits; first sorted source path (or first path) is the target. Only its first-parent history is used. Other held-out paths are observed co-changes, not proven required edits. No random or exhaustive evaluation.",
+      "summary": {
+        "eligibleHeldOutCommits": 10,
+        "samples": 10,
+        "suggestions": 6,
+        "observedCompanions": 46,
+        "hits": 0,
+        "observedPrecision": 0,
+        "observedRecall": 0,
+        "samplesWithSuggestions": 2,
+        "samplesWithHits": 0
+      },
+      "results": [
+        {
+          "hash": "60a3b5d98ddbc134dc720d3c129c470140afc060",
+          "subject": "docs: refresh README presentation",
+          "historyAt": "0893027bd7572ecd86b829e448edc5e5a299fb01",
+          "target": "README.md",
+          "actualCompanions": [
+            "assets/gitfo-scan-overview.jpg"
+          ],
+          "suggestions": [],
+          "hits": [],
+          "notObserved": [],
+          "missed": [
+            "assets/gitfo-scan-overview.jpg"
+          ],
+          "elapsedMs": 24,
+          "targetHistoryCommits": 3
+        },
+        {
+          "hash": "0893027bd7572ecd86b829e448edc5e5a299fb01",
+          "subject": "docs: polish project for portfolio release",
+          "historyAt": "ca6f622e209325e42c84e73a0387b8ffef23bacd",
+          "target": "LICENSE",
+          "actualCompanions": [
+            "README.md"
+          ],
+          "suggestions": [],
+          "hits": [],
+          "notObserved": [],
+          "missed": [
+            "README.md"
+          ],
+          "elapsedMs": 23,
+          "targetHistoryCommits": 0
+        },
+        {
+          "hash": "ca6f622e209325e42c84e73a0387b8ffef23bacd",
+          "subject": "ci: validate tests coverage and package installation",
+          "historyAt": "089762df75747cf0cfc364eb0e1685971dd50878",
+          "target": "scripts/package-smoke.mjs",
+          "actualCompanions": [
+            ".github/workflows/ci.yml",
+            "bun.lock",
+            "package.json"
+          ],
+          "suggestions": [],
+          "hits": [],
+          "notObserved": [],
+          "missed": [
+            ".github/workflows/ci.yml",
+            "bun.lock",
+            "package.json"
+          ],
+          "elapsedMs": 23,
+          "targetHistoryCommits": 0
+        },
+        {
+          "hash": "089762df75747cf0cfc364eb0e1685971dd50878",
+          "subject": "fix: keep scripted output free of loader noise",
+          "historyAt": "5115d9ab9b96defb2a831ba24added5fcf31b2bf",
+          "target": "src/index.ts",
+          "actualCompanions": [
+            "tests/integration/cli.test.ts"
+          ],
+          "suggestions": [
+            "package.json",
+            "src/cli.ts",
+            "src/core/analyzer.ts",
+            "src/output/summary.ts",
+            "src/output/table.ts"
+          ],
+          "hits": [],
+          "notObserved": [
+            "package.json",
+            "src/cli.ts",
+            "src/core/analyzer.ts",
+            "src/output/summary.ts",
+            "src/output/table.ts"
+          ],
+          "missed": [
+            "tests/integration/cli.test.ts"
+          ],
+          "elapsedMs": 23,
+          "targetHistoryCommits": 11
+        },
+        {
+          "hash": "5115d9ab9b96defb2a831ba24added5fcf31b2bf",
+          "subject": "refactor: centralize cli version management",
+          "historyAt": "32ff44348a304e6a631580fa8a5dfb6cb902b1a6",
+          "target": "src/cli.ts",
+          "actualCompanions": [
+            "src/utils/version.ts",
+            "tests/integration/cli.test.ts",
+            "tests/unit/version.test.ts"
+          ],
+          "suggestions": [
+            "src/index.ts"
+          ],
+          "hits": [],
+          "notObserved": [
+            "src/index.ts"
+          ],
+          "missed": [
+            "src/utils/version.ts",
+            "tests/integration/cli.test.ts",
+            "tests/unit/version.test.ts"
+          ],
+          "elapsedMs": 23,
+          "targetHistoryCommits": 3
+        },
+        {
+          "hash": "32ff44348a304e6a631580fa8a5dfb6cb902b1a6",
+          "subject": "feat: complete cli analysis and output behavior",
+          "historyAt": "52f86e94ba09265fe35a3a238d2c9ce88c5125d1",
+          "target": "src/core/aggregator.ts",
+          "actualCompanions": [
+            ".notes/implementation_plan.md",
+            "README.md",
+            "package.json",
+            "src/core/analyzer.ts",
+            "src/index.ts",
+            "src/output/summary.ts",
+            "src/output/table.ts",
+            "src/types.ts",
+            "src/utils/parallel.ts",
+            "tests/integration/cli.test.ts",
+            "tests/unit/aggregator.test.ts",
+            "tests/unit/analyzer.test.ts",
+            "tests/unit/json.test.ts",
+            "tests/unit/output.test.ts",
+            "tests/unit/parallel.test.ts"
+          ],
+          "suggestions": [],
+          "hits": [],
+          "notObserved": [],
+          "missed": [
+            ".notes/implementation_plan.md",
+            "README.md",
+            "package.json",
+            "src/core/analyzer.ts",
+            "src/index.ts",
+            "src/output/summary.ts",
+            "src/output/table.ts",
+            "src/types.ts",
+            "src/utils/parallel.ts",
+            "tests/integration/cli.test.ts",
+            "tests/unit/aggregator.test.ts",
+            "tests/unit/analyzer.test.ts",
+            "tests/unit/json.test.ts",
+            "tests/unit/output.test.ts",
+            "tests/unit/parallel.test.ts"
+          ],
+          "elapsedMs": 24,
+          "targetHistoryCommits": 1
+        },
+        {
+          "hash": "52f86e94ba09265fe35a3a238d2c9ce88c5125d1",
+          "subject": "feat: harden cli execution and repo scanning",
+          "historyAt": "68a965ba8e01cc54ad95d7df00b5c7b418ac0306",
+          "target": "src/core/scanner.ts",
+          "actualCompanions": [
+            "src/index.ts",
+            "src/utils/git.ts",
+            "tests/integration/cli.test.ts",
+            "tests/unit/git.test.ts",
+            "tests/unit/scanner.test.ts"
+          ],
+          "suggestions": [],
+          "hits": [],
+          "notObserved": [],
+          "missed": [
+            "src/index.ts",
+            "src/utils/git.ts",
+            "tests/integration/cli.test.ts",
+            "tests/unit/git.test.ts",
+            "tests/unit/scanner.test.ts"
+          ],
+          "elapsedMs": 22,
+          "targetHistoryCommits": 1
+        },
+        {
+          "hash": "68a965ba8e01cc54ad95d7df00b5c7b418ac0306",
+          "subject": "feat: complete documented cli output behavior",
+          "historyAt": "c5e2bcbd81f911d49adc93677c3ffec1a0ea0efa",
+          "target": "src/cli.ts",
+          "actualCompanions": [
+            "package.json",
+            "src/index.ts",
+            "src/output/json.ts",
+            "src/types.ts",
+            "src/utils/date.ts",
+            "tests/integration/cli.test.ts",
+            "tests/unit/date.test.ts",
+            "tests/unit/json.test.ts"
+          ],
+          "suggestions": [],
+          "hits": [],
+          "notObserved": [],
+          "missed": [
+            "package.json",
+            "src/index.ts",
+            "src/output/json.ts",
+            "src/types.ts",
+            "src/utils/date.ts",
+            "tests/integration/cli.test.ts",
+            "tests/unit/date.test.ts",
+            "tests/unit/json.test.ts"
+          ],
+          "elapsedMs": 22,
+          "targetHistoryCommits": 2
+        },
+        {
+          "hash": "c5e2bcbd81f911d49adc93677c3ffec1a0ea0efa",
+          "subject": "feat: implement multi-repo scanning and aggregation functionality",
+          "historyAt": "b4e45ec6f57094d8a832746d32ab310acb121a94",
+          "target": "src/core/aggregator.ts",
+          "actualCompanions": [
+            "bun.lock",
+            "src/core/scanner.ts",
+            "src/index.ts",
+            "src/output/summary.ts",
+            "src/output/table.ts",
+            "src/types.ts",
+            "src/utils/parallel.ts"
+          ],
+          "suggestions": [],
+          "hits": [],
+          "notObserved": [],
+          "missed": [
+            "bun.lock",
+            "src/core/scanner.ts",
+            "src/index.ts",
+            "src/output/summary.ts",
+            "src/output/table.ts",
+            "src/types.ts",
+            "src/utils/parallel.ts"
+          ],
+          "elapsedMs": 21,
+          "targetHistoryCommits": 0
+        },
+        {
+          "hash": "b4e45ec6f57094d8a832746d32ab310acb121a94",
+          "subject": "refactor: prefer author name over email",
+          "historyAt": "71a23df7f12962ff8769a786748fff846fd79734",
+          "target": "src/cli.ts",
+          "actualCompanions": [
+            "src/core/analyzer.ts",
+            "src/index.ts"
+          ],
+          "suggestions": [],
+          "hits": [],
+          "notObserved": [],
+          "missed": [
+            "src/core/analyzer.ts",
+            "src/index.ts"
+          ],
+          "elapsedMs": 21,
+          "targetHistoryCommits": 1
+        }
+      ]
+    }
+  ]
+}

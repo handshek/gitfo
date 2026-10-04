@@ -7,6 +7,9 @@ history. It can analyze the current repository or scan a directory containing
 multiple repositories, then render the result as a terminal table, one-line
 summary, or JSON.
 
+It also extracts factual changelogs from explicit Git ranges and suggests
+companion files from historical co-changes, with commit evidence attached.
+
 [![CI](https://github.com/handshek/gitfo/actions/workflows/ci.yml/badge.svg)](https://github.com/handshek/gitfo/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18-339933?logo=node.js&logoColor=white)](package.json)
@@ -25,6 +28,8 @@ summary, or JSON.
 - **Verbose output:** Show full per-commit details with verbose table output.
 - **Resilient scanning:** Continue a multi-repository scan when an individual repository fails.
 - **Fast and portable:** Built with Bun and compatible with Node.js 18 or newer.
+- **Factual changelogs:** Group authored release commits into breaking changes, features, fixes, and other changes.
+- **History context:** Suggest companion files with observed co-change frequencies and supporting commits.
 
 ## 🧰 Requirements
 
@@ -92,6 +97,77 @@ gitfo --include-merges
 ```
 
 Run `gitfo --help` for the complete option list.
+
+### Factual changelogs
+
+```bash
+# Starting ref is exclusive; ending ref is inclusive
+gitfo changelog --from v1.0.0 --to HEAD
+
+# Structured evidence for scripts or agents
+gitfo changelog --from v1.0.0 --to HEAD --format json
+
+# Attach file-history context from before the release
+gitfo changelog --from v1.0.0 --to HEAD --with-context --format json
+```
+
+Replace the refs with your repository's tags, branches, or commit SHAs. Both
+refs are required, and `--from` must be an ancestor of `--to`. Annotated tags
+are supported. Equal endpoints produce an empty changelog.
+
+Changelogs include **all authors**, exclude merge envelopes, and retain the
+underlying branch or squash commits. Conventional `feat:` and `fix:` subjects
+become features and fixes. A `!` marker or a `BREAKING CHANGE:` /
+`BREAKING-CHANGE:` body footer takes precedence. Everything else stays in
+“Other changes.” Authored descriptions and bodies are retained; Gitfo does
+not infer product benefits, deployment status, or customer impact.
+
+Markdown is the default. JSON has `schemaVersion: 1`, resolved range hashes,
+categorized entries, full supporting commit records, and changed paths with
+statuses (including rename origins). Commit links are derived locally for
+recognized GitHub, GitLab, or Bitbucket `origin` URLs; other remotes use hashes.
+No remote API, AI provider, or credentials are required.
+
+### Advisory history context
+
+```bash
+# Explicit file paths, relative to your current directory
+gitfo context --files src/core/analyzer.ts --format json
+
+# Staged, unstaged, deleted, renamed, and untracked paths
+gitfo context --working-tree
+
+# Reproducible history endpoint for an explicit file selection
+gitfo context --files src/core/analyzer.ts --ref v1.0.0 --format json
+```
+
+Choose exactly one of `--files <paths...>` or `--working-tree`. Untracked
+files excluded by Git ignore rules are not selected. `--ref` defaults to
+`HEAD`; working-tree selection always uses the current worktree even if a
+historical ref is used.
+Paths in the output are relative to the repository root. Commands are
+read-only and write clean Markdown or JSON to stdout; failures go to stderr
+with a nonzero exit code.
+
+The history window contains the latest 1,000 eligible commits at the selected
+ref. Merge commits, root snapshots, and changesets touching more than 30 paths
+are excluded. A companion needs at least three shared commits. Results are
+ranked by shared commits divided by eligible commits touching the target,
+then shared count and path, with at most five companions and three supporting
+commits per companion. JSON reports these limits, filtering counts,
+window saturation, and shallow or sparse history warnings.
+
+These are **observed frequencies, not probabilities of breakage or required
+edits**. Broad refactors, documentation, and dependency maintenance can still
+produce irrelevant suggestions. Rename chains are not followed, and paths
+may have since been renamed or deleted. Missing suggestions do not prove that
+a file has no dependencies.
+
+`changelog --with-context` reuses the same analysis for each entry's paths,
+anchored at `--from`, so release commits cannot support their own suggestions.
+Subcommand options must follow the command name; activity date, author, scan,
+and merge flags cannot be combined with these commands. Use
+`gitfo changelog --help` or `gitfo context --help` for their options.
 
 ## ⚙️ Options
 
@@ -184,6 +260,9 @@ src/
 ├── output/             table, summary, and JSON renderers
 └── utils/              date, Git, loader, parallel, and version helpers
 ```
+
+The changelog and context commands share a NUL-delimited Git-history reader
+in `src/core/history.ts`; the existing activity analysis remains separate.
 
 ## 📜 License
 

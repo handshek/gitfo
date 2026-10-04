@@ -8,7 +8,7 @@ program
   .name("gitfo")
   .enablePositionalOptions()
   .description(
-    "A blazing-fast CLI tool to analyze git commits and show daily coding activity stats",
+    "Review Git activity, factual changelogs, and advisory file-history context",
   )
   .version(getPackageVersion());
 
