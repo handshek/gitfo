@@ -12,7 +12,7 @@ export class GitHistory {
   static async open(directory: string): Promise<GitHistory> {
     try {
       const { stdout } = await execute("git", ["-C", directory, "rev-parse", "--show-toplevel"]);
-      return new GitHistory(stdout.trimEnd());
+      return new GitHistory(stdout.replace(/\r?\n$/, ""));
     } catch {
       throw new Error("Not in a Git worktree. Run this command inside a repository.");
     }

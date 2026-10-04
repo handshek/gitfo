@@ -1,4 +1,5 @@
-import { isAbsolute, relative, resolve, sep } from "node:path";
+import { realpathSync } from "node:fs";
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { GitHistory, changedFiles } from "./history.js";
 import type { ContextOptions, FileContext, HistoryCommit, HistoryContext } from "../types.js";
 
@@ -56,6 +57,7 @@ export async function historyContext(git: GitHistory, paths: string[], ref: stri
     limitations: [
       "Co-change frequencies are historical observations, not probabilities of breakage or required edits.",
       "Merge commits, root snapshots, and changesets touching more than 30 paths are excluded. Rename chains are not followed.",
+      "Companion paths may have since been renamed or deleted; check their current relevance.",
       ...(shallow ? ["This repository is shallow; missing history can suppress or distort suggestions."] : []),
       ...(eligible.length === limits.commits ? ["Only the latest 1000 eligible commits at this ref were considered."] : []),
       ...files.filter(file => file.eligibleCommits < limits.minSharedCommits).map(file => `Sparse history for ${JSON.stringify(file.path)}: ${file.eligibleCommits} eligible commits; no companion can meet the minimum of 3 shared commits.`),
@@ -70,13 +72,28 @@ export async function generateContext(directory: string, options: Pick<ContextOp
   if (Boolean(options.files?.length) === Boolean(options.workingTree)) throw new Error("Choose exactly one of --files <paths...> or --working-tree.");
   const git = await GitHistory.open(directory);
   const paths = options.workingTree ? await workingTreePaths(git) : options.files!.map(file => {
-    const path = relative(git.root, resolve(directory, file));
+    const path = relative(git.root, canonicalFilePath(resolve(directory, file)));
     if (!path || path === ".." || path.startsWith(`..${sep}`) || isAbsolute(path) || path === ".git" || path.startsWith(`.git${sep}`)) {
       throw new Error(`Expected a file path inside this worktree, not ${JSON.stringify(file)}.`);
     }
     return path.split(sep).join("/");
   });
   return historyContext(git, paths, options.ref, options.workingTree ? "working-tree" : "files");
+}
+
+// Resolve directory aliases without following the selected file's own symlink.
+// Missing historical/deleted paths are allowed; resolve their nearest parent.
+function canonicalFilePath(path: string): string {
+  let parent = dirname(path);
+  const parts = [basename(path)];
+  while (true) {
+    try { return join(realpathSync(parent), ...parts); }
+    catch (error) {
+      if (!["ENOENT", "ENOTDIR"].includes((error as NodeJS.ErrnoException).code ?? "") || dirname(parent) === parent) throw error;
+      parts.unshift(basename(parent));
+      parent = dirname(parent);
+    }
+  }
 }
 
 async function workingTreePaths(git: GitHistory): Promise<string[]> {
