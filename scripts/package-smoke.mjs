@@ -1,7 +1,11 @@
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
+import { parseArgs } from "node:util";
+
+const { values } = parseArgs({ options: { "pack-destination": { type: "string" } } });
 
 const packageMetadata = JSON.parse(readFileSync("package.json", "utf8"));
 const smokeRoot = mkdtempSync(join(tmpdir(), "gitfo-package-smoke-"));
@@ -19,6 +23,14 @@ try {
       { encoding: "utf8", env: npmEnvironment },
     ),
   );
+  const packed = packResult[0];
+  const files = new Set(packed.files.map(file => file.path));
+  const rootFiles = ["package.json", "README.md", "LICENSE", "CHANGELOG.md", "RELEASING.md"];
+  if (packed.name !== packageMetadata.name || packed.version !== packageMetadata.version ||
+      !["dist/index.js", ...rootFiles].every(path => files.has(path)) ||
+      [...files].some(path => !path.startsWith("dist/") && !rootFiles.includes(path))) {
+    throw new Error("Packed contents must contain the compiled CLI, package metadata, license, README, changelog, and release guide only.");
+  }
   const tarballPath = join(smokeRoot, packResult[0].filename);
 
   execFileSync(
@@ -89,6 +101,16 @@ try {
     expectFailure(["--format=json", "--version"], "PACKAGE_METADATA_ERROR");
   } finally {
     writeFileSync(installedMetadataPath, installedMetadata);
+  }
+
+  if (values["pack-destination"]) {
+    const destination = resolve(values["pack-destination"]);
+    mkdirSync(destination, { recursive: true });
+    const artifact = join(destination, packed.filename);
+    const digest = createHash("sha256").update(readFileSync(tarballPath)).digest("hex");
+    copyFileSync(tarballPath, artifact);
+    writeFileSync(`${artifact}.sha256`, `${digest}  ${packed.filename}\n`);
+    console.log(`Verified package saved to ${artifact}.`);
   }
 
   console.log(`Packed CLI smoke test passed for gitfo ${version}.`);

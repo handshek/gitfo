@@ -1,8 +1,8 @@
 {
   "name": "gitfo",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "packageManager": "bun@1.3.9",
-  "description": "A blazing-fast CLI tool to analyze git commits and show daily coding activity stats",
+  "description": "Review Git activity, factual changelogs, and advisory file-history context",
   "main": "dist/index.js",
   "bin": {
     "gitfo": "./dist/index.js"
@@ -14,6 +14,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:package": "node scripts/package-smoke.mjs",
+    "test:release": "bun run test:coverage && bun run build && bun run test:package --pack-destination artifacts",
     "prepublishOnly": "bun run build"
   },
   "keywords": [
@@ -35,7 +36,9 @@
   "homepage": "https://github.com/handshek/gitfo#readme",
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md",
+    "RELEASING.md"
   ],
   "engines": {
     "node": ">=18.0.0",

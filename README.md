@@ -275,12 +275,13 @@ Node.js release.
 ### Release checklist
 
 ```bash
-bun run test
-bun run build
-node dist/index.js --version
-node dist/index.js --help
-bun run test:package
+bun run test:release
 ```
+
+This verifies the release and saves the checked tarball and SHA-256 checksum
+under `artifacts/`; it does not publish. See [RELEASING.md](RELEASING.md) for
+versioning, tagging, CI artifacts, and the separately approved publish steps,
+and [CHANGELOG.md](CHANGELOG.md) for release notes.
 
 ## 🗂️ Project Structure
 
