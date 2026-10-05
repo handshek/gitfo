@@ -1,6 +1,7 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import type { HistoryCommit } from "../types.js";
+import { CLIError } from "../utils/errors.js";
 
 const execute = promisify(execFile);
 const objectId = /^[a-f0-9]{40,64}$/;
@@ -14,7 +15,7 @@ export class GitHistory {
       const { stdout } = await execute("git", ["-C", directory, "rev-parse", "--show-toplevel"]);
       return new GitHistory(stdout.replace(/\r?\n$/, ""));
     } catch {
-      throw new Error("Not in a Git worktree. Run this command inside a repository.");
+      throw new CLIError("NOT_GIT_REPOSITORY", "Not in a Git worktree. Run this command inside a repository.");
     }
   }
 
@@ -28,11 +29,11 @@ export class GitHistory {
   }
 
   async resolve(ref: string): Promise<string> {
-    if (!ref.trim() || ref.startsWith("-")) throw new Error(`Invalid commit ref: ${JSON.stringify(ref)}.`);
+    if (!ref.trim() || ref.startsWith("-")) throw new CLIError("INVALID_REF", `Invalid commit ref: ${JSON.stringify(ref)}.`);
     try {
       return (await this.run(["rev-parse", "--verify", "--end-of-options", `${ref}^{commit}`])).trim();
     } catch {
-      throw new Error(`Cannot resolve commit ref ${JSON.stringify(ref)}. Fetch the required history or use an existing tag, branch, or commit SHA.`);
+      throw new CLIError("INVALID_REF", `Cannot resolve commit ref ${JSON.stringify(ref)}. Fetch the required history or use an existing tag, branch, or commit SHA.`);
     }
   }
 
@@ -41,7 +42,7 @@ export class GitHistory {
     try {
       await this.run(["merge-base", "--is-ancestor", start, end]);
     } catch {
-      throw new Error(`The starting ref must be an ancestor of the ending ref. Check the range and fetch missing history in shallow clones.`);
+      throw new CLIError("INVALID_COMMIT_RANGE", `The starting ref must be an ancestor of the ending ref. Check the range and fetch missing history in shallow clones.`);
     }
     return { from: start, to: end };
   }

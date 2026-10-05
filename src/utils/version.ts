@@ -1,5 +1,6 @@
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
+import { CLIError } from "./errors.js";
 
 interface PackageMetadata {
   version?: unknown;
@@ -18,11 +19,11 @@ export function getPackageVersion(
     ) as PackageMetadata;
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
-    throw new Error(`Unable to read package version metadata: ${reason}`);
+    throw new CLIError("PACKAGE_METADATA_ERROR", `Unable to read package version metadata: ${reason}`);
   }
 
-  if (typeof metadata.version !== "string" || metadata.version.trim() === "") {
-    throw new Error(
+  if (!metadata || typeof metadata.version !== "string" || metadata.version.trim() === "") {
+    throw new CLIError("PACKAGE_METADATA_ERROR",
       "Unable to read package version metadata: package.json must contain a non-empty string version.",
     );
   }

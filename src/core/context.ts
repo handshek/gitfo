@@ -2,6 +2,7 @@ import { realpathSync } from "node:fs";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { GitHistory, changedFiles } from "./history.js";
 import type { ContextOptions, FileContext, HistoryCommit, HistoryContext } from "../types.js";
+import { CLIError } from "../utils/errors.js";
 
 const limits = { commits: 1000, filesPerCommit: 30, minSharedCommits: 3, companions: 5, evidence: 3 };
 
@@ -69,12 +70,12 @@ export async function historyContext(git: GitHistory, paths: string[], ref: stri
 function comparePaths(a: string, b: string): number { return a < b ? -1 : a > b ? 1 : 0; }
 
 export async function generateContext(directory: string, options: Pick<ContextOptions, "files" | "workingTree" | "ref">): Promise<HistoryContext> {
-  if (Boolean(options.files?.length) === Boolean(options.workingTree)) throw new Error("Choose exactly one of --files <paths...> or --working-tree.");
+  if (Boolean(options.files?.length) === Boolean(options.workingTree)) throw new CLIError("INVALID_ARGUMENTS", "Choose exactly one of --files <paths...> or --working-tree.");
   const git = await GitHistory.open(directory);
   const paths = options.workingTree ? await workingTreePaths(git) : options.files!.map(file => {
     const path = relative(git.root, canonicalFilePath(resolve(directory, file)));
     if (!path || path === ".." || path.startsWith(`..${sep}`) || isAbsolute(path) || path === ".git" || path.startsWith(`.git${sep}`)) {
-      throw new Error(`Expected a file path inside this worktree, not ${JSON.stringify(file)}.`);
+      throw new CLIError("INVALID_PATH", `Expected a file path inside this worktree, not ${JSON.stringify(file)}.`);
     }
     return path.split(sep).join("/");
   });

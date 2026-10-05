@@ -9,6 +9,7 @@ import {
   subWeeks,
 } from "date-fns";
 import { CLIOptions, DateRange } from "../types.js";
+import { CLIError } from "./errors.js";
 
 export function getToday(): Date {
   return startOfDay(new Date());
@@ -82,7 +83,7 @@ export function parseDateRange(options: CLIOptions): DateRange {
       : new Date();
 
     if (start > end) {
-      throw new Error("--since must be before or equal to --until.");
+      throw new CLIError("INVALID_DATE_RANGE", "--since must be before or equal to --until.");
     }
 
     return { start, end };
@@ -97,7 +98,7 @@ export function parseDateRange(options: CLIOptions): DateRange {
 
 function parseDateOption(value: string, optionName: string): Date {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    throw new Error(
+    throw new CLIError("INVALID_DATE_RANGE",
       `Invalid date format for --${optionName}: ${value}. Use YYYY-MM-DD format.`,
     );
   }
@@ -105,7 +106,7 @@ function parseDateOption(value: string, optionName: string): Date {
   const date = parseISO(value);
 
   if (!isValid(date)) {
-    throw new Error(
+    throw new CLIError("INVALID_DATE_RANGE",
       `Invalid date format for --${optionName}: ${value}. Use YYYY-MM-DD format.`,
     );
   }
@@ -129,7 +130,7 @@ function validateDateOptionConflicts(options: CLIOptions): void {
   }
 
   if (selectedModes.length > 1) {
-    throw new Error(
+    throw new CLIError("INVALID_DATE_RANGE",
       `Conflicting date options: ${selectedModes.join(", ")}. Choose one date mode.`,
     );
   }

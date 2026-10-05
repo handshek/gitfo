@@ -212,6 +212,38 @@ exclusive:
 - `json` includes commit records, analysis failures, repository failures, and
   aggregate totals.
 
+### Machine-readable failures
+
+With `--format json` (after the command name for subcommands), application
+failures exit with code `1`, leave stdout empty, and write exactly one JSON
+object followed by a newline to stderr:
+
+```json
+{"schemaVersion":1,"kind":"error","error":{"code":"INVALID_DATE_RANGE","message":"Invalid date format for --date: bad. Use YYYY-MM-DD format."}}
+```
+
+This covers argument parsing as well as execution. Match `error.code`, not
+the human-readable message, which may change. Other output formats retain
+human-readable diagnostics.
+
+| Code | Meaning |
+| --- | --- |
+| `INVALID_ARGUMENTS` | Unknown options, missing required arguments, or conflicting command options |
+| `INVALID_DATE_RANGE` | Invalid dates, reversed ranges, or conflicting date modes |
+| `NOT_GIT_REPOSITORY` | The command requires a Git worktree |
+| `INVALID_REF` | A commit ref cannot be resolved |
+| `INVALID_COMMIT_RANGE` | The starting ref is not an ancestor of the ending ref |
+| `INVALID_PATH` | A context path escapes the worktree or selects its root/metadata |
+| `PACKAGE_METADATA_ERROR` | Gitfo cannot load a non-empty version from its package metadata |
+| `OPERATION_FAILED` | Other execution failures, such as a failed Git command |
+
+Successful JSON output is unchanged. Partial activity analysis or scan
+failures remain in `analysisFailures` / `failedRepositories` on stdout with
+exit code `0`; consumers should inspect those fields. `--help` and `--version`
+remain successful text output, even when a JSON format option is present.
+Errors preventing Node or Bun from loading the application itself are runtime
+diagnostics, outside this contract.
+
 ## 🔎 Scan Behavior and Limitations
 
 - Repository discovery searches three directory levels deep by default.

@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -65,6 +65,30 @@ try {
   }
   if (!invoke("changelog", "--from", "start", "--to", "HEAD").startsWith("# Changelog:")) {
     throw new Error("Packed Markdown changelog output is missing its header.");
+  }
+
+  const expectFailure = (args, code, cwd = repo) => {
+    const result = spawnSync(binaryPath, args, { cwd, encoding: "utf8", env: { ...process.env, NO_COLOR: "1" } });
+    const error = JSON.parse(result.stderr);
+    if (result.status !== 1 || result.stdout !== "" || result.stderr.trim().split("\n").length !== 1 ||
+        error.schemaVersion !== 1 || error.kind !== "error" || error.error?.code !== code || !error.error.message) {
+      throw new Error(`Packed CLI did not preserve the ${code} error contract.`);
+    }
+  };
+  expectFailure(["--format=json", "--date", "bad"], "INVALID_DATE_RANGE");
+  expectFailure(["--unknown", "--format=json"], "INVALID_ARGUMENTS");
+  expectFailure(["--format=json"], "NOT_GIT_REPOSITORY", smokeRoot);
+  expectFailure(["changelog", "--from", "missing", "--to", "HEAD", "--format=json"], "INVALID_REF");
+  expectFailure(["context", "--files", "../outside", "--format=json"], "INVALID_PATH");
+
+  // Test package metadata at the installed CLI seam without touching this checkout.
+  const installedMetadataPath = join(installRoot, "node_modules", "gitfo", "package.json");
+  const installedMetadata = readFileSync(installedMetadataPath, "utf8");
+  try {
+    writeFileSync(installedMetadataPath, JSON.stringify({ ...JSON.parse(installedMetadata), version: "" }));
+    expectFailure(["--format=json", "--version"], "PACKAGE_METADATA_ERROR");
+  } finally {
+    writeFileSync(installedMetadataPath, installedMetadata);
   }
 
   console.log(`Packed CLI smoke test passed for gitfo ${version}.`);

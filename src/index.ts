@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-import { parseCLI } from "./cli.js";
+import { CommanderError } from "commander";
+import { parseCLI, requestsJSON } from "./cli.js";
 import { parseDateRange } from "./utils/date.js";
 import { getGitUserName, getGitUserEmail, isGitRepo } from "./utils/git.js";
 import { analyzeRepository } from "./core/analyzer.js";
@@ -16,17 +17,17 @@ import { generateChangelog } from "./core/changelog.js";
 import { formatChangelog } from "./output/changelog.js";
 import { generateContext } from "./core/context.js";
 import { formatContext } from "./output/context.js";
+import { CLIError, formatCLIError } from "./utils/errors.js";
 
 type RepositoryAnalysisResult =
   | { ok: true; stats: RepoStats }
   | { ok: false; failure: RepoAnalysisFailure };
 
-// Parse CLI - commander will handle --help and --version automatically
-const options = parseCLI();
-
 // Main execution
 (async () => {
   try {
+    // Keep argument parsing and package metadata inside the failure contract.
+    const options = parseCLI();
     if ("command" in options) {
       if (options.command === "changelog") {
         const result = await generateChangelog(cwd(), options.from, options.to, options.withContext);
@@ -53,11 +54,8 @@ const options = parseCLI();
       const format = options.format ?? "table";
 
       if (!isGitRepo(currentDir)) {
-        console.error("Error: Not in a git repository.");
-        console.error(
-          "Run this command in a git repo, or use --scan to scan multiple repos.",
-        );
-        process.exit(1);
+        throw new CLIError("NOT_GIT_REPOSITORY",
+          "Not in a git repository.\nRun this command in a git repo, or use --scan to scan multiple repos.");
       }
 
       // Analyze current repository with loading animation
@@ -158,11 +156,12 @@ const options = parseCLI();
       }
     }
   } catch (error) {
-    if (error instanceof Error) {
-      console.error(`Error: ${error.message}`);
-      process.exit(1);
+    if (error instanceof CommanderError) {
+      if (error.exitCode === 0) return; // --help/--version are successful text output.
+      error = new CLIError("INVALID_ARGUMENTS", error.message.replace(/^error:\s*/i, ""));
     }
-    throw error;
+    console.error(formatCLIError(error, requestsJSON()));
+    process.exitCode = 1;
   }
 })();
 

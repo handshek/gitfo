@@ -3,6 +3,7 @@ import { tmpdir } from "os";
 import { join } from "path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { getPackageVersion } from "../../src/utils/version.js";
+import { CLIError } from "../../src/utils/errors.js";
 
 let tempDir: string;
 
@@ -35,5 +36,20 @@ describe("getPackageVersion", () => {
     expect(() => getPackageVersion(new URL(`file://${metadataPath}`))).toThrow(
       "package.json must contain a non-empty string version",
     );
+  });
+
+  it("uses the package metadata code for unreadable, malformed, and missing versions", () => {
+    const metadataPath = join(tempDir, "package.json");
+    const url = new URL(`file://${metadataPath}`);
+    for (const contents of [undefined, "{", "null", "{}", '{"version":42}']) {
+      if (contents !== undefined) writeFileSync(metadataPath, contents);
+      try {
+        getPackageVersion(url);
+        throw new Error("Expected a metadata failure.");
+      } catch (error) {
+        expect(error).toBeInstanceOf(CLIError);
+        expect((error as CLIError).code).toBe("PACKAGE_METADATA_ERROR");
+      }
+    }
   });
 });

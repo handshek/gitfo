@@ -7,10 +7,11 @@ const program = new Command();
 program
   .name("gitfo")
   .enablePositionalOptions()
+  .exitOverride()
+  .configureOutput({ writeErr: () => {} })
   .description(
     "Review Git activity, factual changelogs, and advisory file-history context",
-  )
-  .version(getPackageVersion());
+  );
 
 program
   .option(
@@ -64,6 +65,7 @@ function rejectActivityOptions(): void {
 }
 
 export function parseCLI(): CLIOptions | ChangelogOptions | ContextOptions {
+  program.version(getPackageVersion());
   program.parse();
   if (subcommand) return subcommand;
   const options = program.opts();
@@ -83,6 +85,42 @@ export function parseCLI(): CLIOptions | ChangelogOptions | ContextOptions {
     includeMerges: options.includeMerges ?? false,
     verbose: options.verbose ?? false,
   };
+}
+
+/** Detect format intent even when Commander fails before returning options. */
+export function requestsJSON(argv: string[] = process.argv.slice(2)): boolean {
+  const args = [...argv];
+  let command = program;
+  let format: string | undefined;
+  let variadic = false;
+  while (args.length) {
+    const arg = args.shift()!;
+    if (arg === "--") break;
+    const isOption = arg.length > 1 && arg.startsWith("-");
+    if (variadic && !isOption) continue;
+    variadic = false;
+    const flag = arg.split("=", 1)[0];
+    const option = command.options.find(item => item.long === flag || item.short === flag);
+    if (option) {
+      if (option.required) {
+        const value = arg.includes("=") ? arg.slice(arg.indexOf("=") + 1) : args.shift();
+        if (option.long === "--format") format = value;
+        variadic = option.variadic;
+      }
+      continue;
+    }
+    // Match Commander's combined short flags and attached argument values.
+    if (/^-[^-].+/.test(arg)) {
+      const short = command.options.find(item => item.short === arg.slice(0, 2));
+      if (short) {
+        if (!short.required && !short.optional) args.unshift(`-${arg.slice(2)}`);
+        continue;
+      }
+    }
+    const child = command.commands.find(item => item.name() === arg);
+    if (child) command = child;
+  }
+  return format === "json";
 }
 
 export { program };
