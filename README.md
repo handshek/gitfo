@@ -247,6 +247,8 @@ diagnostics, outside this contract.
 ## 🔎 Scan Behavior and Limitations
 
 - Repository discovery searches three directory levels deep by default.
+- Scan results use canonical worktree root paths. Overlapping paths and symbolic
+  links to the same worktree count once. Separate linked worktrees remain distinct.
 - Discovery skips `.git`, `node_modules`, and Git-ignored paths when Git can
   evaluate the ignore rules. Outside a Git worktree, the fallback ignore parser
   supports common literal directory patterns but not every `.gitignore`
@@ -257,6 +259,9 @@ diagnostics, outside this contract.
   email. Scan mode applies that identity to every discovered repository.
 - “Files changed” is the sum of files touched per commit, not a count of unique
   files across the complete date range.
+- Commits whose parent history is unavailable, such as shallow clone boundaries,
+  are excluded from totals and listed in `analysisFailures`. Summary and table
+  output warn about failed commits, including in scan mode.
 
 ## 🛠️ Development
 

@@ -44,7 +44,7 @@ export function formatTable(
   );
 
   output.push(table.toString());
-  appendAnalysisFailures(output, stats);
+  appendAnalysisFailures(output, stats.analysisFailures.length);
 
   // Recent commits
   if (stats.commits.length > 0) {
@@ -109,6 +109,10 @@ export function formatMultiRepoTable(
 
   output.push(totalsTable.toString());
   appendRepoFailures(output, stats);
+  appendAnalysisFailures(
+    output,
+    stats.repositories.reduce((sum, repo) => sum + repo.analysisFailures.length, 0),
+  );
 
   if (stats.repositories.length === 0) {
     output.push("");
@@ -148,7 +152,7 @@ export function formatMultiRepoTable(
     for (const repo of stats.repositories) {
       output.push("");
       output.push(chalk.bold(`${repo.name} commits:`));
-      appendAnalysisFailures(output, repo);
+      appendAnalysisFailures(output, repo.analysisFailures.length);
 
       if (repo.commits.length === 0) {
         output.push(chalk.yellow("  No commits found for this date range."));
@@ -182,15 +186,15 @@ function formatCommitLine(
   return `  ${shortHash} ${chalk.gray(timestamp)} ${commit.author} | files: ${commit.filesChanged} | ${added} ${deleted} | ${message}`;
 }
 
-function appendAnalysisFailures(output: string[], stats: RepoStats): void {
-  if (stats.analysisFailures.length === 0) {
+function appendAnalysisFailures(output: string[], failedCommits: number): void {
+  if (failedCommits === 0) {
     return;
   }
 
   output.push("");
   output.push(
     chalk.yellow(
-      `Warning: ${stats.analysisFailures.length} commit(s) could not be analyzed.`,
+      `Warning: ${failedCommits} commit(s) could not be analyzed.`,
     ),
   );
 }

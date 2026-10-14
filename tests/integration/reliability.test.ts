@@ -102,3 +102,33 @@ describe("scan identity", () => {
     expect(stats.repositories.map((entry) => entry.path).sort()).toEqual([realpathSync(repo), realpathSync(linked)].sort());
   });
 });
+
+describe("partial scan output", () => {
+  it.each(["summary", "table"])("warns about failed commits in %s without verbose mode", (format) => {
+    const healthy = repository("healthy");
+    commit(healthy, "good.txt", "good\n");
+    const broken = repository("broken");
+    const failedHash = commit(broken, "unavailable.txt", "unavailable\n");
+    const blob = git(broken, "rev-parse", "HEAD:unavailable.txt");
+    rmSync(join(broken, ".git", "objects", blob.slice(0, 2), blob.slice(2)));
+    const empty = repository("empty");
+
+    const jsonResult = invoke(directory, "--scan", healthy, broken, empty, "--format", "json");
+    expect(jsonResult.status).toBe(0);
+    expect(jsonResult.stderr).toBe("");
+    const stats: MultiRepoStats = JSON.parse(jsonResult.stdout);
+    expect(stats).toMatchObject({ totalRepositories: 2, totalCommits: 1, totalLinesAdded: 1 });
+    expect(stats.failedRepositories).toHaveLength(1);
+    expect(stats.repositories.flatMap((repo) => repo.analysisFailures).map((failure) => failure.hash)).toEqual([failedHash.slice(0, 7)]);
+
+    const result = invoke(directory, "--scan", healthy, broken, empty, "--format", format);
+    expect(result.status).toBe(0);
+    expect(result.stderr).toBe("");
+    if (format === "summary") {
+      expect(result.stdout.trim()).toBe("Repos: 2 | Commits: 1 | Files: 1 | +1 | -0 | Net: +1 | Warnings: 1 repos failed, 1 commits failed");
+    } else {
+      expect(result.stdout).toContain("Warning: 1 repo(s) could not be analyzed.");
+      expect(result.stdout).toContain("Warning: 1 commit(s) could not be analyzed.");
+    }
+  });
+});

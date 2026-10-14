@@ -75,4 +75,24 @@ describe("output formatters", () => {
     expect(output).toContain("Recent commits:");
     expect(output).not.toContain("Test User | files: 2");
   });
+
+  it("sums failed commits across repositories without requiring repository failures", () => {
+    const stats = {
+      ...multiRepoStats,
+      repositories: [repoStats, { ...repoStats, name: "second", path: "/tmp/second" }],
+      failedRepositories: [],
+    };
+    expect(formatMultiRepoSummary(stats)).toContain("Warnings: 2 commits failed");
+    expect(formatMultiRepoTable(stats, dateRange, null)).toContain("Warning: 2 commit(s) could not be analyzed.");
+  });
+
+  it("keeps successful scan summaries unchanged", () => {
+    const stats = {
+      ...multiRepoStats,
+      repositories: [{ ...repoStats, analysisFailures: [] }],
+      failedRepositories: [],
+    };
+    expect(formatMultiRepoSummary(stats)).toBe("Repos: 1 | Commits: 1 | Files: 2 | +10 | -3 | Net: +7");
+    expect(formatMultiRepoTable(stats, dateRange, null)).not.toContain("Warning:");
+  });
 });

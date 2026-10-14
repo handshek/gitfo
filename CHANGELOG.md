@@ -19,9 +19,16 @@
 
 - File-context selections normalize directory aliases to repository paths.
 - Date-sensitive activity tests keep their fixtures within the current day.
+- Activity statistics report missing parent history as an analysis failure instead
+  of counting the entire shallow-boundary snapshot as new work.
+- Scans count each canonical worktree root once across overlapping paths and
+  symbolic links. Repository paths and names now reflect the canonical root.
+- Scan summaries and default tables warn about failed commit analyses alongside
+  repository failures.
 
-Activity commands and their successful JSON output remain unchanged. History
-suggestions are advisory, not proven dependencies. Changelog entries do not
+The activity JSON schema remains unchanged. Corrected counts, canonical paths,
+and analysis failures can change result values. History suggestions are advisory,
+not proven dependencies. Changelog entries do not
 establish customer benefits or deployment status.
 
 ## 1.0.0
