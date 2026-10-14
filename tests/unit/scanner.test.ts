@@ -1,5 +1,5 @@
 import { execFileSync } from "child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "fs";
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -18,7 +18,7 @@ function createRepo(path: string): void {
 
 describe("findGitRepos", () => {
   beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), "gitfo-scanner-test-"));
+    tempDir = realpathSync(mkdtempSync(join(tmpdir(), "gitfo-scanner-test-")));
   });
 
   afterEach(() => {

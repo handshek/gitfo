@@ -1,10 +1,10 @@
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { RepoStats } from "../../src/types.js";
+import { MultiRepoStats, RepoStats } from "../../src/types.js";
 
 const cli = resolve("src/index.ts");
 const fixtureEnv = {
@@ -66,5 +66,39 @@ describe("activity reliability", () => {
       { hash: boundary.slice(0, 7), message: "Add boundary.txt", reason: expect.any(String) },
     ]);
     expect(stats.analysisFailures[0].reason.length).toBeGreaterThan(0);
+  });
+});
+
+describe("scan identity", () => {
+  it.each(["explicit paths", "parent directory"])("counts one worktree once through %s", (mode) => {
+    const repo = repository("repository with spaces ");
+    const subdirectory = join(repo, "src");
+    mkdirSync(subdirectory);
+    commit(repo, "src/one.txt", "one\ntwo\n");
+    const alias = join(directory, "alias");
+    symlinkSync(repo, alias, "dir");
+    const paths = mode === "explicit paths" ? [repo, subdirectory, alias] : [directory];
+
+    const result = invoke(directory, "--scan", ...paths, "--format", "json");
+    expect(result.status).toBe(0);
+    expect(result.stderr).toBe("");
+    const stats: MultiRepoStats = JSON.parse(result.stdout);
+    expect(stats).toMatchObject({ totalRepositories: 1, totalCommits: 1, totalFilesChanged: 1, totalLinesAdded: 2 });
+    expect(stats.repositories.map((entry) => entry.path)).toEqual([realpathSync(repo)]);
+    expect(stats.failedRepositories).toEqual([]);
+  });
+
+  it("keeps separate linked worktrees in the scan", () => {
+    const repo = repository("repository");
+    commit(repo, "one.txt", "one\n");
+    const linked = join(directory, "linked");
+    git(repo, "worktree", "add", "--detach", linked, "HEAD");
+
+    const result = invoke(directory, "--scan", repo, linked, "--format", "json");
+    expect(result.status).toBe(0);
+    expect(result.stderr).toBe("");
+    const stats: MultiRepoStats = JSON.parse(result.stdout);
+    expect(stats).toMatchObject({ totalRepositories: 2, totalCommits: 2, totalLinesAdded: 2 });
+    expect(stats.repositories.map((entry) => entry.path).sort()).toEqual([realpathSync(repo), realpathSync(linked)].sort());
   });
 });

@@ -1,7 +1,6 @@
 import { execFileSync } from "child_process";
-import { readFileSync, readdirSync, statSync } from "fs";
+import { readFileSync, readdirSync, realpathSync, statSync } from "fs";
 import { basename, relative, resolve, join } from "path";
-import { isGitRepo } from "../utils/git.js";
 
 const DEFAULT_MAX_DEPTH = 3;
 const ALWAYS_IGNORED = new Set([".git", "node_modules"]);
@@ -26,7 +25,7 @@ export function findGitRepos(
     const absolutePath = resolve(inputPath);
     walkForRepos(absolutePath, 0, maxDepth, repos, {
       fallbackIgnoreRules: [],
-      gitIgnoreRoot: findGitIgnoreRoot(absolutePath),
+      gitIgnoreRoot: findGitRoot(absolutePath),
     });
   }
 
@@ -56,8 +55,9 @@ function walkForRepos(
     return;
   }
 
-  if (isGitRepo(currentPath)) {
-    repos.add(currentPath);
+  const repoRoot = findGitRoot(currentPath);
+  if (repoRoot) {
+    repos.add(repoRoot);
     return;
   }
 
@@ -108,14 +108,15 @@ function shouldIgnore(path: string, context: WalkContext): boolean {
   return isIgnoredByFallbackRules(path, context.fallbackIgnoreRules);
 }
 
-function findGitIgnoreRoot(path: string): string | null {
+function findGitRoot(path: string): string | null {
   try {
     const output = execFileSync("git", ["-C", path, "rev-parse", "--show-toplevel"], {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
     });
 
-    return output.trim() || null;
+    const root = output.replace(/\n$/, "");
+    return root ? realpathSync(root) : null;
   } catch {
     return null;
   }
