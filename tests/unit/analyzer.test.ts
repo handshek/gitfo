@@ -94,7 +94,7 @@ describe("analyzeRepository", () => {
             },
           ],
         }),
-        raw: vi.fn().mockResolvedValue("parent-hash"),
+        raw: vi.fn().mockResolvedValue("tree abcdef\nparent 123456\n\nfeat: mocked\n"),
         diffSummary: vi.fn().mockRejectedValue(new Error("diff failed")),
       }),
     }));

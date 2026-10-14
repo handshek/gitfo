@@ -84,15 +84,14 @@ async function getCommitDiffSummary(
   git: SimpleGit,
   commitHash: string,
 ): Promise<any> {
-  const parentCommit = await git
-    .raw(["rev-parse", `${commitHash}^`])
-    .catch(() => null);
+  const commitObject = await git.raw(["cat-file", "commit", commitHash]);
+  const parent = commitObject
+    .split("\n\n", 1)[0]
+    .split("\n")
+    .find((line) => line.startsWith("parent "))
+    ?.slice(7);
 
-  if (parentCommit && parentCommit.trim()) {
-    return git.diffSummary([`${commitHash}^`, commitHash]);
-  }
-
-  return git.diffSummary([EMPTY_TREE_HASH, commitHash]);
+  return git.diffSummary([parent ?? EMPTY_TREE_HASH, commitHash]);
 }
 
 function toCommitInfo(commit: any, diffSummary: any): CommitInfo {
