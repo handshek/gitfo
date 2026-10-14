@@ -165,7 +165,8 @@ a file has no dependencies.
 
 `changelog --with-context` reuses the same analysis for each entry's paths,
 anchored at `--from`, so release commits cannot support their own suggestions.
-Subcommand options must follow the command name; activity date, author, scan,
+Unexpected positional arguments are rejected. Subcommand options must follow
+the command name. Activity date, author, scan,
 and merge flags cannot be combined with these commands. Use
 `gitfo changelog --help` or `gitfo context --help` for their options.
 
@@ -203,6 +204,14 @@ exclusive:
 | `--yesterday` | The previous calendar day |
 | `--this-week`, `--week` | Monday through now |
 | `--last-week` | The previous Monday through Sunday |
+
+Date values must be nonempty `YYYY-MM-DD` strings. Calendar boundaries use your
+local time zone. Activity filters select commits by committer timestamp, as Git
+does; the JSON commit `date` retains the author timestamp. Queries traverse
+reachable history so backdated descendants do not hide matching ancestors.
+Git 2.37 and newer filter that history before returning metadata to Gitfo. Older
+or unrecognized Git versions use bounded pages and can take longer because each
+page repeats part of the history walk.
 
 ## 📤 Output Formats
 

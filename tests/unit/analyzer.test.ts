@@ -83,6 +83,7 @@ describe("analyzeRepository", () => {
   it("records commit analysis failures instead of skipping silently", async () => {
     vi.doMock("simple-git", () => ({
       default: () => ({
+        version: vi.fn().mockResolvedValue({ major: 2, minor: 50, patch: 1 }),
         log: vi.fn().mockResolvedValue({
           all: [
             {
@@ -91,6 +92,7 @@ describe("analyzeRepository", () => {
               author_name: "Test User",
               author_email: "test@example.com",
               date: "2026-02-01T10:00:00.000Z",
+              committedAt: "1769940000",
             },
           ],
         }),

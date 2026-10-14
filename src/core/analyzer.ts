@@ -1,5 +1,6 @@
 import simpleGit, { SimpleGit } from "simple-git";
 import { basename } from "path";
+import { devNull } from "node:os";
 import {
   RepoStats,
   CommitInfo,
@@ -7,9 +8,6 @@ import {
   CommitAnalysisFailure,
 } from "../types.js";
 import { formatDateForGit } from "../utils/date.js";
-
-// Git's empty tree hash
-const EMPTY_TREE_HASH = "4b825dc642cb6eb9a060e54bf8d69288fbee4904";
 
 export async function analyzeRepository(
   path: string,
@@ -20,39 +18,49 @@ export async function analyzeRepository(
   const git: SimpleGit = simpleGit(path);
   const repoName = basename(path);
 
-  // Format dates as YYYY-MM-DD strings for git
-  const sinceStr = formatDateForGit(dateRange.start);
   const untilStr = formatDateForGit(dateRange.end);
+  const version = await git.version();
+  const supportsDateFilter = version.major > 2 || (version.major === 2 && version.minor >= 37);
+  const revision = supportsDateFilter ? undefined : await git.revparse(["HEAD"]);
+  const pageSize = 1000;
 
-  const logOptions: any = {
-    "--since": sinceStr,
+  const logOptions = {
+    format: {
+      hash: "%H",
+      date: "%aI",
+      message: "%s",
+      author_name: "%aN",
+      author_email: "%aE",
+      committedAt: "%ct",
+    },
     "--until": untilStr,
+    ...(supportsDateFilter ? { "--since-as-filter": formatDateForGit(dateRange.start) } : {}),
+    ...(author ? { "--author": author } : {}),
+    ...(!includeMerges ? { "--no-merges": null } : {}),
   };
-
-  if (author) {
-    logOptions["--author"] = author;
-  }
-
-  if (!includeMerges) {
-    logOptions["--no-merges"] = true;
-  }
-
-  const log = await git.log(logOptions);
 
   const commits: CommitInfo[] = [];
   const analysisFailures: CommitAnalysisFailure[] = [];
 
-  // Process each commit to get diff stats
-  for (const commit of log.all) {
-    try {
-      commits.push(await analyzeCommit(git, commit));
-    } catch (error) {
-      analysisFailures.push({
-        hash: commit.hash.substring(0, 7),
-        message: commit.message || "",
-        reason: error instanceof Error ? error.message : String(error),
-      });
+  for (let offset = 0; ; offset += pageSize) {
+    const log = await git.log({
+      ...logOptions,
+      ...(revision ? { [revision]: null, maxCount: pageSize, "--skip": offset } : {}),
+    });
+    for (const commit of log.all) {
+      // Older Git needs local filtering because --since can hide newer ancestors.
+      if (Number(commit.committedAt) * 1000 < dateRange.start.getTime()) continue;
+      try {
+        commits.push(await analyzeCommit(git, commit));
+      } catch (error) {
+        analysisFailures.push({
+          hash: commit.hash.substring(0, 7),
+          message: commit.message || "",
+          reason: error instanceof Error ? error.message : String(error),
+        });
+      }
     }
+    if (supportsDateFilter || log.all.length < pageSize) break;
   }
 
   // Aggregate stats
@@ -91,7 +99,8 @@ async function getCommitDiffSummary(
     .find((line) => line.startsWith("parent "))
     ?.slice(7);
 
-  return git.diffSummary([parent ?? EMPTY_TREE_HASH, commitHash]);
+  const base = parent ?? (await git.raw(["hash-object", "-t", "tree", devNull])).trim();
+  return git.diffSummary([base, commitHash]);
 }
 
 function toCommitInfo(commit: any, diffSummary: any): CommitInfo {

@@ -22,10 +22,10 @@ function git(cwd: string, ...args: string[]): string {
   }).trimEnd();
 }
 
-function repository(name: string): string {
+function repository(name: string, objectFormat = "sha1"): string {
   const repo = join(directory, name);
   mkdirSync(repo, { recursive: true });
-  git(repo, "init");
+  git(repo, "init", ...(objectFormat === "sha1" ? [] : [`--object-format=${objectFormat}`]));
   git(repo, "config", "user.name", "Reliability Test");
   git(repo, "config", "user.email", "reliability@example.com");
   return repo;
@@ -48,8 +48,8 @@ beforeEach(() => { directory = mkdtempSync(join(tmpdir(), "gitfo-reliability-"))
 afterEach(() => { rmSync(directory, { recursive: true, force: true }); });
 
 describe("activity reliability", () => {
-  it("reports a missing shallow parent without counting the entire snapshot", () => {
-    const source = repository("source");
+  it.each(["sha1", "sha256"])("reports a missing %s shallow parent without counting the entire snapshot", (objectFormat) => {
+    const source = repository("source", objectFormat);
     commit(source, "base.txt", "base\n".repeat(100));
     const boundary = commit(source, "boundary.txt", "boundary\n");
     const tip = commit(source, "tip.txt", "tip\n");

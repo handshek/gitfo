@@ -25,6 +25,11 @@
   symbolic links. Repository paths and names now reflect the canonical root.
 - Scan summaries and default tables warn about failed commit analyses alongside
   repository failures.
+- Date queries include matching ancestors behind backdated descendants while
+  preserving committer-date selection and author-date output.
+- Activity statistics count root commits in both SHA1 and SHA256 repositories.
+- Commands reject unexpected positional arguments and explicitly empty date
+  values instead of silently ignoring them.
 
 The activity JSON schema remains unchanged. Corrected counts, canonical paths,
 and analysis failures can change result values. History suggestions are advisory,

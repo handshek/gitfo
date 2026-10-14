@@ -101,6 +101,21 @@ describe("parseDateRange", () => {
     );
   });
 
+  it.each([
+    { date: "" },
+    { since: "" },
+    { until: "" },
+    { since: "", until: "2026-02-02" },
+    { since: "2026-02-02", until: "" },
+    { date: " " },
+  ])("rejects supplied invalid date values: %j", (options) => {
+    expect(() => parseDateRange(options)).toThrow("Invalid date format");
+  });
+
+  it("rejects an empty date mode combined with another mode", () => {
+    expect(() => parseDateRange({ date: "", today: true })).toThrow("Conflicting date options");
+  });
+
   it("rejects conflicting date modes", () => {
     expect(() =>
       parseDateRange({ today: true, yesterday: true }),

@@ -66,7 +66,7 @@ export function parseDateRange(options: CLIOptions): DateRange {
     };
   }
 
-  if (options.date) {
+  if (options.date !== undefined) {
     const date = parseDateOption(options.date, "date");
     return {
       start: startOfDay(date),
@@ -74,11 +74,11 @@ export function parseDateRange(options: CLIOptions): DateRange {
     };
   }
 
-  if (options.since || options.until) {
-    const start = options.since
+  if (options.since !== undefined || options.until !== undefined) {
+    const start = options.since !== undefined
       ? startOfDay(parseDateOption(options.since, "since"))
       : new Date(0);
-    const end = options.until
+    const end = options.until !== undefined
       ? endOfDay(parseDateOption(options.until, "until"))
       : new Date();
 
@@ -116,13 +116,13 @@ function parseDateOption(value: string, optionName: string): Date {
 
 function validateDateOptionConflicts(options: CLIOptions): void {
   const selectedModes = [
-    options.date ? "--date" : null,
+    options.date !== undefined ? "--date" : null,
     options.today ? "--today" : null,
     options.yesterday ? "--yesterday" : null,
     options.thisWeek ? "--this-week" : null,
     options.lastWeek ? "--last-week" : null,
     options.week ? "--week" : null,
-    options.since || options.until ? "--since/--until" : null,
+    options.since !== undefined || options.until !== undefined ? "--since/--until" : null,
   ].filter((mode): mode is string => mode !== null);
 
   if (options.thisWeek && options.week) {

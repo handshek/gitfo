@@ -7,6 +7,7 @@ const program = new Command();
 program
   .name("gitfo")
   .enablePositionalOptions()
+  .allowExcessArguments(false)
   .exitOverride()
   .configureOutput({ writeErr: () => {} })
   .description(
